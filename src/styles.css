@@ -217,7 +217,7 @@ body { background: #E8E4DC; }
 .impresion td { border:1px solid #B8B2AA; padding:2px 5px; height:17px; }
 .impresion td.num { text-align:center; color:#000; }
 
-.solo-impresion { display:none; }
+.solo-impresion { position:fixed; left:-99999px; top:0; width:210mm; background:#fff; }
 
 .pie { margin-top:14px; font-size:12px; color:var(--suave);
   display:flex; flex-wrap:wrap; gap:4px 14px; align-items:baseline; }
@@ -241,7 +241,7 @@ body { background: #E8E4DC; }
 
 @media print {
   .app { display:none !important; }
-  .solo-impresion { display:block !important; }
+  .solo-impresion { position:static; left:auto; top:auto; width:auto; }
   .impresion thead { display:table-header-group; }
   .impresion tr { break-inside:avoid; }
   @page { size:A4; margin:14mm; }
