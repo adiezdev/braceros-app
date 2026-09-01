@@ -9,7 +9,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node pruebas/api.mjs && esbuild pruebas/diff.ts --bundle --format=esm --platform=node --outfile=node_modules/.cache/diff.mjs --log-level=warning && node node_modules/.cache/diff.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.454.0",
@@ -21,6 +22,7 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
+    "esbuild": "0.21.5",
     "typescript": "^5.6.3",
     "vite": "^5.4.10"
   }
