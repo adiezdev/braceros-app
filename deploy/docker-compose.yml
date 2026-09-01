@@ -1,0 +1,66 @@
+# Esto va en el NAS, no se ejecuta en tu portátil.
+# Copia esta carpeta entera (con el .env al lado) al NAS y desde ahí:
+#   docker compose up -d
+#
+# Son dos contenedores:
+#   braceros    la app, un nginx sirviendo los ficheros
+#   watchtower  el que vigila si hay imagen nueva en GitHub y la despliega
+
+services:
+  braceros:
+    image: ghcr.io/${GHCR_USER}/${GHCR_REPO}:latest
+    container_name: braceros
+    restart: unless-stopped
+
+    ports:
+      # izquierda = puerto del NAS, derecha = puerto dentro del contenedor.
+      # El 80 y el 443 del NAS los usa UGOS para su propia interfaz, por eso
+      # el 8087. Cámbialo en el .env si lo quieres en otro sitio.
+      - "${PUERTO:-8087}:80"
+
+    # Sin esta etiqueta, watchtower ignora el contenedor. Así solo toca lo
+    # que le decimos y no se pone a actualizar el resto de cosas del NAS.
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+    # Registro acotado, para que no engorde el disco del NAS con el tiempo.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: braceros-watchtower
+    restart: unless-stopped
+
+    volumes:
+      # Le da acceso al Docker del NAS: es como puede parar y arrancar
+      # el contenedor de la app cuando llega una versión nueva.
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    environment:
+      # Credenciales para leer del registro privado de GitHub.
+      REPO_USER: ${GHCR_USER}
+      REPO_PASS: ${GHCR_TOKEN}
+      # Cada cuánto pregunta si hay novedades, en segundos. 300 = 5 minutos.
+      WATCHTOWER_POLL_INTERVAL: ${INTERVALO:-300}
+      # Solo mira los contenedores con la etiqueta de arriba.
+      WATCHTOWER_LABEL_ENABLE: "true"
+      # Borra la imagen vieja tras actualizar, o el disco se va llenando.
+      WATCHTOWER_CLEANUP: "true"
+      TZ: Europe/Madrid
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

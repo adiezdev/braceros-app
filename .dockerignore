@@ -1,0 +1,15 @@
+# Todo lo que no debe entrar en el contexto que se manda al build.
+# Sin esto, Docker copiaría node_modules entero antes de empezar.
+node_modules
+dist
+.git
+.github
+.gitignore
+*.local
+.DS_Store
+tsconfig.tsbuildinfo
+Dockerfile
+.dockerignore
+deploy
+DESPLIEGUE.md
+README.md

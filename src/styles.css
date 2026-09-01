@@ -1,0 +1,217 @@
+/* ------------------------------------------------------------------ *
+ * Agrupación de Braceros de San Martín
+ *
+ * Registro de cofradía, no panel de control: lo denso es la virtud.
+ * Papel gris-arena, morado nazareno para la estructura, granate para
+ * faltas e impagos, verde para asistencias y latón para un solo
+ * detalle: la raya que marca el cierre del cupo.
+ *
+ * Las fuentes se cargan desde index.html.
+ * ------------------------------------------------------------------ */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #E8E4DC; }
+.app, .solo-impresion { --papel:#E8E4DC; --panel:#FDFCFA; --morado:#4A1E4F;
+  --morado-claro:#7A4C80; --granate:#7A1F2B; --verde:#2F5A3D; --laton:#A98432;
+  --tinta:#2A2622; --suave:#6B635C; --filete:#CFC8BD; }
+
+.app { background:var(--papel); color:var(--tinta); min-height:100vh;
+  padding:20px 22px 40px; font-family:'IBM Plex Sans Condensed',system-ui,sans-serif;
+  font-size:14px; font-variant-numeric:tabular-nums; }
+.app *:focus-visible { outline:2px solid var(--morado); outline-offset:1px; }
+
+/* cabecera */
+.cabecera { display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;
+  justify-content:space-between; border-bottom:2px solid var(--morado);
+  padding-bottom:12px; margin-bottom:16px; }
+.cabecera__marca h1 { font-family:Spectral,Georgia,serif; font-weight:700;
+  font-size:26px; line-height:1.1; margin:0; letter-spacing:-.01em; }
+.cabecera__marca p { margin:3px 0 0; color:var(--suave); font-size:13px; max-width:62ch; }
+.cabecera__acciones { display:flex; gap:8px; }
+
+/* botones */
+.btn { display:inline-flex; align-items:center; gap:6px; font:inherit;
+  font-weight:500; padding:7px 12px; border:1px solid var(--morado);
+  background:var(--panel); color:var(--morado); cursor:pointer; border-radius:2px; }
+.btn:hover { background:#F2EDF3; }
+.btn--fuerte { background:var(--morado); color:#fff; }
+.btn--fuerte:hover { background:#5D2864; }
+.btn--fino { padding:5px 10px; font-size:13px; }
+
+/* avisos */
+.aviso { display:flex; align-items:center; gap:8px; padding:8px 11px;
+  margin-bottom:12px; border-left:3px solid var(--morado); background:var(--panel);
+  font-size:13px; }
+.aviso--error { border-left-color:var(--granate); color:var(--granate); }
+.aviso--ok { border-left-color:var(--verde); }
+.aviso__x { margin-left:auto; border:0; background:none; cursor:pointer;
+  color:inherit; display:flex; padding:2px; }
+
+/* resumen */
+.resumen { display:flex; flex-wrap:wrap; gap:20px 26px; align-items:flex-start;
+  background:var(--panel); border:1px solid var(--filete); padding:14px 16px;
+  margin-bottom:16px; }
+.resumen__cifra { display:flex; flex-direction:column; }
+.resumen__cifra strong { font-family:Spectral,serif; font-size:34px; line-height:.95;
+  font-weight:600; }
+.resumen__cifra span { color:var(--suave); font-size:12px; }
+.resumen__bloques { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.pastilla { font-size:12px; padding:3px 8px; border:1px solid var(--filete);
+  border-radius:2px; }
+.pastilla--honorarios { border-color:var(--laton); }
+.pastilla--titulares { border-color:var(--verde); }
+.pastilla--suplentes { border-color:var(--morado-claro); }
+.resumen .aviso { flex-basis:100%; margin:0; }
+
+.tabla-mini { border-collapse:collapse; font-size:13px; }
+.tabla-mini th { text-align:left; font-weight:600; color:var(--suave);
+  padding:2px 12px 4px 0; border-bottom:1px solid var(--filete); font-size:12px; }
+.tabla-mini td { padding:3px 12px 3px 0; }
+
+/* pestañas */
+.pestanas { display:flex; gap:2px; border-bottom:1px solid var(--filete); }
+.pest { font:inherit; font-weight:500; padding:8px 14px; border:0;
+  background:none; cursor:pointer; color:var(--suave); border-bottom:2px solid transparent; }
+.pest:hover { color:var(--tinta); }
+.pest--activa { color:var(--morado); border-bottom-color:var(--morado); }
+
+/* barra de herramientas */
+.barra { display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+  padding:10px 0; }
+.buscador { display:inline-flex; align-items:center; gap:6px; background:var(--panel);
+  border:1px solid var(--filete); padding:5px 9px; color:var(--suave); }
+.buscador input { font:inherit; border:0; background:none; outline:none;
+  color:var(--tinta); width:190px; }
+.anios { display:flex; gap:5px; flex-wrap:wrap; }
+.anio-x { display:inline-flex; align-items:center; gap:4px; font:inherit;
+  font-size:12px; padding:3px 7px; border:1px solid var(--filete);
+  background:var(--panel); cursor:pointer; color:var(--suave); }
+.anio-x:hover { border-color:var(--granate); color:var(--granate); }
+.nota-filtro { font-size:12px; color:var(--suave); font-style:italic; }
+
+/* rejilla */
+.lienzo { background:var(--panel); border:1px solid var(--filete); overflow:auto;
+  max-height:70vh; }
+.rejilla { border-collapse:separate; border-spacing:0; width:100%; font-size:13px; }
+.rejilla thead th { position:sticky; top:0; z-index:2; background:var(--morado);
+  color:#fff; font-weight:600; text-align:left; padding:6px 8px; font-size:12px;
+  white-space:nowrap; }
+.rejilla thead tr:nth-child(2) th { top:26px; background:var(--morado-claro); }
+.rejilla th.th-anio { text-align:center; border-left:1px solid rgba(255,255,255,.35); }
+.rejilla th.th-marca { text-align:center; }
+.rejilla th.th-num { width:44px; }
+.rejilla th.th-bloque { width:100px; }
+.rejilla th.th-tel { width:110px; }
+.rejilla th.th-acc { width:130px; }
+.rejilla tbody td { padding:2px 8px; border-bottom:1px solid #EFEAE2;
+  vertical-align:middle; }
+.rejilla tbody tr:hover td { background:#FAF7F1; }
+.num { text-align:right; color:var(--suave); font-variant-numeric:tabular-nums; }
+.nombre { white-space:nowrap; }
+.nombre em { color:var(--suave); }
+.bloque { font-size:12px; color:var(--suave); white-space:nowrap; }
+.bloque--titulares { color:var(--verde); }
+.bloque--honorarios { color:var(--laton); }
+.cifra { text-align:right; white-space:nowrap; }
+.cifra--debe { color:var(--granate); }
+
+.txt { font:inherit; width:100%; min-width:80px; border:1px solid transparent;
+  background:none; padding:3px 5px; color:inherit; }
+.txt:hover { border-color:var(--filete); }
+.txt:focus { border-color:var(--morado); background:#fff; outline:none; }
+.txt--corto { min-width:60px; }
+.sel { font:inherit; font-size:12px; border:1px solid var(--filete);
+  background:#fff; padding:3px 4px; color:var(--suave); }
+.sel--titulares { color:var(--verde); }
+.sel--honorarios { color:var(--laton); }
+
+/* marcas */
+.td-marca { text-align:center; padding:2px 4px !important; }
+.m { font:inherit; font-weight:600; width:34px; height:24px; cursor:pointer;
+  border:1px solid var(--filete); background:#fff; border-radius:2px; }
+.m--si { color:var(--verde); border-color:var(--verde); background:#F1F6F2; }
+.m--no { color:var(--granate); border-color:var(--granate); background:#FBF1F2; }
+.m--just { color:var(--laton); border-color:var(--laton); background:#FBF7EE; }
+.m--vacia { color:#C4BCB2; }
+.m:hover { border-color:var(--morado); }
+
+/* acciones de fila */
+.acc { display:flex; gap:2px; }
+.acc button { border:1px solid transparent; background:none; cursor:pointer;
+  color:var(--suave); display:flex; padding:3px; border-radius:2px; }
+.acc button:hover { border-color:var(--filete); color:var(--morado); background:#fff; }
+.acc--peligro:hover { color:var(--granate) !important; border-color:var(--granate) !important; }
+
+/* la raya de latón: el cierre del cupo */
+.cupo td { padding:0 !important; border:0 !important; position:relative;
+  height:20px; background:linear-gradient(var(--panel),var(--panel)); }
+.cupo td::before { content:''; position:absolute; left:0; right:0; top:50%;
+  border-top:2px solid var(--laton); }
+.cupo__texto { position:relative; display:inline-block; margin-left:12px;
+  background:var(--panel); padding:0 8px; font-size:11px; letter-spacing:.06em;
+  color:var(--laton); font-weight:600; top:3px; }
+
+/* vacío */
+.vacio { padding:46px 20px; text-align:center; }
+.vacio p { margin:0 0 4px; font-family:Spectral,serif; font-size:20px; }
+.vacio__ayuda { font-family:'IBM Plex Sans Condensed',sans-serif !important;
+  font-size:14px !important; color:var(--suave); }
+.vacio__acciones { display:flex; gap:8px; justify-content:center; margin-top:16px; }
+
+/* impresión: panel */
+.panel-impr { padding:14px 16px; }
+.panel-impr__cfg { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
+.panel-impr__cfg label { display:flex; flex-direction:column; gap:3px;
+  font-size:12px; color:var(--suave); }
+.panel-impr__cfg input, .panel-impr__cfg select { font:inherit;
+  border:1px solid var(--filete); padding:5px 7px; background:#fff;
+  color:var(--tinta); width:150px; }
+.panel-impr__nota { color:var(--suave); font-size:13px; max-width:70ch;
+  margin:12px 0 0; }
+.previa { margin-top:16px; border-top:1px solid var(--filete); padding-top:16px;
+  max-height:46vh; overflow:auto; background:#fff; }
+
+/* documento imprimible */
+.impresion { padding:8px 14px; color:#000; }
+.impresion__titulo { font-family:Spectral,serif; font-size:19px; text-align:center;
+  margin:0 0 2px; text-transform:uppercase; letter-spacing:.02em; }
+.impresion__sub { text-align:center; font-size:11px; color:#555; margin:0 0 14px; }
+.impresion__bloque { margin-bottom:16px; break-inside:auto; }
+.impresion__bloque h2 { font-family:Spectral,serif; font-size:14px;
+  color:var(--morado); margin:12px 0 4px; }
+.impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
+.impresion table { border-collapse:collapse; width:100%; font-size:11px; }
+.impresion th { background:#E4E0DA; border:1px solid #999; padding:3px 5px;
+  text-align:center; font-weight:600; }
+.impresion th:nth-child(2) { text-align:left; }
+.impresion td { border:1px solid #B8B2AA; padding:2px 5px; height:17px; }
+.impresion td.num { text-align:center; color:#000; }
+
+.solo-impresion { display:none; }
+
+.pie { margin-top:14px; font-size:12px; color:var(--suave); }
+
+@media print {
+  .app { display:none !important; }
+  .solo-impresion { display:block !important; }
+  .impresion__bloque h2 { break-after:avoid; }
+  .impresion thead { display:table-header-group; }
+  .impresion tr { break-inside:avoid; }
+  @page { size:A4; margin:14mm; }
+}
+
+@media (max-width:760px) {
+  .cabecera { align-items:flex-start; }
+  .rejilla th.th-acc, .acc { min-width:120px; }
+  .buscador input { width:130px; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  * { transition:none !important; animation:none !important; }
+}
+
+/* botones deshabilitados de reordenación */
+.acc button:disabled { opacity:.3; cursor:not-allowed; }
+.acc button:disabled:hover { border-color:transparent; color:var(--suave);
+  background:none; }

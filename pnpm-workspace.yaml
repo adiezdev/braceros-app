@@ -1,0 +1,4 @@
+# esbuild necesita su script de instalación para colocar el binario nativo.
+# pnpm bloquea los scripts de las dependencias salvo que se aprueben aquí.
+allowBuilds:
+  esbuild: true

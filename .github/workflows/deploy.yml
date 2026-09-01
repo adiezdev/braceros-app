@@ -1,0 +1,61 @@
+name: Publicar imagen
+
+# Se dispara con cada push a main, y también a mano desde la pestaña Actions
+# de GitHub (botón "Run workflow"), por si quieres reconstruir sin tocar código.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  imagen:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write # necesario para poder subir la imagen a ghcr.io
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ghcr.io exige el nombre en minúsculas y el de usuario puede llevar
+      # mayúsculas, así que lo bajamos antes de usarlo.
+      - name: Nombre de la imagen
+        id: img
+        run: echo "nombre=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Entrar en ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          # Token que GitHub genera solo para esta ejecución. No hay que
+          # crear ningún secreto para esta parte.
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Etiquetas
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ steps.img.outputs.nombre }}
+          # :latest es la que sigue el NAS. La del hash del commit queda
+          # como histórico, para poder volver atrás si un cambio rompe algo.
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Construir y subir
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          # El DXP4800 es Intel, así que basta con amd64.
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Guarda las capas entre ejecuciones: el segundo build baja de
+          # ~2 min a ~30 s mientras no toques las dependencias.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
