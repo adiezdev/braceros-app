@@ -1,4 +1,6 @@
 import { Plus, Printer, X } from "lucide-react";
+import { useRef } from "react";
+import { useReactToPrint } from "react-to-print";
 
 import type { CfgImpresion, Estado, TipoListado } from "../types";
 import { VistaImpresion } from "./VistaImpresion";
@@ -10,6 +12,13 @@ interface Props {
 }
 
 export function PanelImpresion({ est, cfg, setCfg }: Props) {
+  const docRef = useRef<HTMLDivElement>(null);
+
+  const imprimir = useReactToPrint({
+    contentRef: docRef,
+    documentTitle: "listado-braceros",
+  });
+
   const anadirAnioNuevo = () =>
     setCfg((c) => ({
       ...c,
@@ -100,7 +109,7 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
           />
         </label>
 
-        <button className="btn btn--fuerte" onClick={() => window.print()}>
+        <button className="btn btn--fuerte" onClick={() => imprimir()}>
           <Printer size={15} /> Imprimir o guardar en PDF
         </button>
       </div>
@@ -108,11 +117,16 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
       <p className="panel-impr__nota">
         Imprime la portada con el escudo y después el listado partido por hojas:
         la cabecera se repite al principio de cada hoja y el pie lleva la numeración
-        de páginas. Desde el diálogo de impresión puedes guardarlo en PDF.
+        de páginas. El documento queda oculto hasta que pulsas imprimir.
       </p>
 
       <div className="previa">
         <VistaImpresion est={est} cfg={cfg} />
+      </div>
+
+      {/* Solo se imprime este bloque; el panel de configuración queda fuera. */}
+      <div className="solo-impresion" ref={docRef}>
+        <VistaImpresion est={est} cfg={cfg} paraImpresion />
       </div>
     </div>
   );

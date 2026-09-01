@@ -7,7 +7,6 @@ import { Resumen } from "./components/Resumen";
 import { TablaAsistencias } from "./components/TablaAsistencias";
 import { TablaCuotas } from "./components/TablaCuotas";
 import { TablaHermanos } from "./components/TablaHermanos";
-import { VistaImpresion } from "./components/VistaImpresion";
 import { ANIO_BASE, ENTIDAD } from "./constants";
 import { descargarLibro, leerLibro } from "./lib/libro";
 import { crearHermano, estadoInicial } from "./lib/modelo";
@@ -333,11 +332,6 @@ export default function App() {
             cuando quieras una copia fuera de aquí.
           </span>
         </footer>
-      </div>
-
-      {/* lo único que se manda a la impresora */}
-      <div className="solo-impresion">
-        <VistaImpresion est={est} cfg={cfgImpr} />
       </div>
     </>
   );

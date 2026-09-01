@@ -186,19 +186,28 @@ body { background: #E8E4DC; }
 
 /* portada */
 .impresion__portada { display:flex; flex-direction:column; align-items:center;
-  justify-content:center; text-align:center; min-height:230mm; padding:0 20px;
-  page-break-after: always; break-after: page; }
+  justify-content:center; text-align:center; padding:30px 20px; }
 .impresion__portada .impresion__titulo { font-size:28px; margin-top:12px; }
 .impresion__portada .impresion__sub { font-size:13px; margin-top:6px; }
-.impresion__escudo { width:62mm; height:auto; }
+.impresion__escudo { width:180px; height:auto; }
 
-/* hojas paginadas: un A4 cada una, sin partirse por la mitad */
-.impresion__hoja { page-break-after: always; break-after: page;
+/* previsualización: listado continuo, scrollable */
+.impresion--previa { background:#fff; width:100%; }
+.impresion--previa .impresion__portada { min-height:46vh; }
+.impresion--previa .impresion__bloque { margin-bottom:18px; }
+.impresion--previa .impresion__bloque h2 { font-family:'Poppins',Arial,sans-serif;
+  font-size:14px; color:var(--burdeos); margin:10px 0 4px; }
+.impresion--previa .impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
+
+/* impresión: hojas paginadas, un A4 cada una sin partirse */
+.impresion--print .impresion__portada { min-height:0; page-break-after: always;
+  break-after: page; }
+.impresion--print .impresion__hoja { page-break-after: always; break-after: page;
   page-break-inside: avoid; break-inside: avoid; }
-.impresion__hoja:last-child { page-break-after: auto; break-after: auto; }
-.impresion__hoja h2 { font-family:'Poppins',Arial,sans-serif; font-size:14px;
-  color:var(--burdeos); margin:4px 0 4px; }
-.impresion__hoja h2 span { color:#777; font-weight:400; font-size:12px; }
+.impresion--print .impresion__hoja:last-child { page-break-after: auto; break-after: auto; }
+.impresion--print .impresion__hoja h2 { font-family:'Poppins',Arial,sans-serif;
+  font-size:14px; color:var(--burdeos); margin:0 0 4px; }
+.impresion--print .impresion__hoja h2 span { color:#777; font-weight:400; font-size:12px; }
 .impresion__pag { text-align:center; font-size:10px; color:#777; margin:8px 0 0; }
 
 .impresion table { border-collapse:collapse; width:100%; font-size:11px; }

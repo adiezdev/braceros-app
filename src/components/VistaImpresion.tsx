@@ -2,8 +2,8 @@ import { BLOQUES, ENTIDAD, ETIQUETA_BLOQUE, PROCESIONES } from "../constants";
 import escudo from "../data/escudosm.png";
 import type { CfgImpresion, Estado, Hermano } from "../types";
 
-/** Filas que entran en una hoja A4. Se afina mirando el preview de impresión. */
-const FILAS_POR_HOJA = 42;
+/** Filas que entran en una hoja A4 al imprimir. Se afina mirando el PDF. */
+const FILAS_POR_HOJA = 44;
 
 interface Fila {
   h: Hermano | null;
@@ -20,9 +20,11 @@ interface Hoja {
 interface Props {
   est: Estado;
   cfg: CfgImpresion;
+  /** true = por hojas (impresión), false = listado continuo (previsualización) */
+  paraImpresion?: boolean;
 }
 
-export function VistaImpresion({ est, cfg }: Props) {
+export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
   const { hermanos, cuota } = est;
   const { tipo, anioAnterior, aniosNuevos, blancos } = cfg;
 
@@ -61,6 +63,62 @@ export function VistaImpresion({ est, cfg }: Props) {
 
   const ultimo = hermanos.length;
 
+  const portada = (
+    <section className="impresion__portada">
+      <img className="impresion__escudo" src={escudo} alt="Escudo de la agrupación" />
+      <h1 className="impresion__titulo">{ENTIDAD}</h1>
+      <p className="impresion__sub">
+        {tipo === "asistencias"
+          ? `Asistencia a las procesiones · ${textoAnios}`
+          : `Cuotas · ${textoAnios} · ${cuota} € anuales`}
+      </p>
+    </section>
+  );
+
+  /* Previsualización: listado continuo, cada bloque en su tabla. */
+  if (!paraImpresion) {
+    return (
+      <div className="impresion impresion--previa">
+        {portada}
+        {BLOQUES.map((bloque) => {
+          const filas = hermanos
+            .map((h, i) => ({ h, n: i + 1 }))
+            .filter(({ h }) => h.bloque === bloque);
+          return (
+            <section key={bloque} className="impresion__bloque">
+              <h2>
+                {ETIQUETA_BLOQUE[bloque]} <span>({filas.length})</span>
+              </h2>
+              <table>
+                <thead>
+                  <tr>
+                    {cabecera.map((c) => (
+                      <th key={c}>{c}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filas.map(({ h, n }) => (
+                    <tr key={h.id}>
+                      <td className="num">{n}</td>
+                      <td>{h.nombre}</td>
+                      {valores(h).map((v, k) => (
+                        <td key={k} className="num">
+                          {v}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          );
+        })}
+      </div>
+    );
+  }
+
+  /* Impresión: portada + hojas paginadas con cabecera repetida y numeración. */
   const hojas: Hoja[] = [];
   BLOQUES.forEach((bloque) => {
     const filasBloque: Fila[] = hermanos
@@ -81,24 +139,11 @@ export function VistaImpresion({ est, cfg }: Props) {
     }
   });
 
-  const totalPaginas = hojas.length + 1; // la portada cuenta
+  const totalPaginas = hojas.length + 1;
 
   return (
-    <div className="impresion">
-      <section className="impresion__portada">
-        <img
-          className="impresion__escudo"
-          src={escudo}
-          alt="Escudo de la agrupación"
-        />
-        <h1 className="impresion__titulo">{ENTIDAD}</h1>
-        <p className="impresion__sub">
-          {tipo === "asistencias"
-            ? `Asistencia a las procesiones · ${textoAnios}`
-            : `Cuotas · ${textoAnios} · ${cuota} € anuales`}
-        </p>
-      </section>
-
+    <div className="impresion impresion--print">
+      {portada}
       {hojas.map((hoja, i) => (
         <section key={`${hoja.bloque}-${i}`} className="impresion__hoja">
           {hoja.esInicio && (
