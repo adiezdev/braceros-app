@@ -240,6 +240,8 @@ body { background: #E8E4DC; }
 .arranque .btn { margin-top:14px; }
 
 @media print {
+  html, body { margin:0 !important; padding:0 !important; }
+  body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .app { display:none !important; }
   .solo-impresion { position:static; left:auto; top:auto; width:auto; }
   .impresion thead { display:table-header-group; }
