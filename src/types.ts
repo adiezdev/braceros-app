@@ -38,7 +38,7 @@ export type TipoListado = "asistencias" | "cuotas";
 export interface CfgImpresion {
   tipo: TipoListado;
   anioAnterior: number;
-  anioNuevo: number;
+  aniosNuevos: number[];
   blancos: number;
 }
 

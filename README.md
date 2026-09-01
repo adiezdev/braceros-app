@@ -127,7 +127,7 @@ afectan a **todo el mundo**, no solo a tu navegador. La app avisa antes.
 
 `api/migraciones/001_esquema.sql`. Lo que importa:
 
-- **El año es un dato**, no una columna. Añadir 2027 es una fila en
+- **El año es un dato**, no una columna. Añadir 2026 es una fila en
   `anio_cuota`, no una migración.
 - **Las procesiones también.** El día que haya una tercera, es un `INSERT` en
   `procesion` (y tocar las etiquetas de la interfaz).

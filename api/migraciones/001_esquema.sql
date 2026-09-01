@@ -1,5 +1,5 @@
 -- Esquema normalizado. Lo importante: el año es un DATO, no una columna.
--- Añadir 2027 es insertar una fila, no migrar nada nunca más.
+-- Añadir 2026 es insertar una fila, no migrar nada nunca más.
 
 CREATE TYPE bloque_t    AS ENUM ('HONORARIOS', 'TITULARES', 'SUPLENTES');
 CREATE TYPE marca_t     AS ENUM ('V', 'F', 'FJ');
@@ -58,7 +58,7 @@ CREATE TABLE cuota (
   PRIMARY KEY (hermano_id, anio)
 );
 
--- Una procesión concreta de un año concreto. "La Exaltación de 2026".
+-- Una procesión concreta de un año concreto. "La Exaltación de 2025".
 CREATE TABLE evento (
   anio      integer NOT NULL REFERENCES anio_asistencia(anio) ON DELETE CASCADE,
   procesion text    NOT NULL REFERENCES procesion(clave),

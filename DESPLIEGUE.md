@@ -245,7 +245,7 @@ dentro de una compartida que ya entre en tu copia de seguridad del NAS.
 Restaurar una copia:
 
 ```bash
-gunzip -c copia-2026-09-01.sql.gz | docker compose exec -T postgres psql -U braceros braceros
+gunzip -c copia-2025-09-01.sql.gz | docker compose exec -T postgres psql -U braceros braceros
 ```
 
 Y aparte, la app sigue teniendo **Guardar Excel**, que es la copia que se lee

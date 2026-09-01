@@ -2,9 +2,9 @@
  * Agrupación de Braceros de San Martín
  *
  * Registro de cofradía, no panel de control: lo denso es la virtud.
- * Papel gris-arena, morado nazareno para la estructura, granate para
- * faltas e impagos, verde para asistencias y latón para un solo
- * detalle: la raya que marca el cierre del cupo.
+ * Papel gris-arena, burdeos para la estructura, rojo para faltas e
+ * impagos, verde para asistencias y latón para un solo detalle: la
+ * raya que marca el cierre del cupo.
  *
  * Las fuentes se cargan desde index.html.
  * ------------------------------------------------------------------ */
@@ -12,38 +12,38 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body { background: #E8E4DC; }
-.app, .solo-impresion { --papel:#E8E4DC; --panel:#FDFCFA; --morado:#4A1E4F;
-  --morado-claro:#7A4C80; --granate:#7A1F2B; --verde:#2F5A3D; --laton:#A98432;
+.app, .solo-impresion { --papel:#E8E4DC; --panel:#FDFCFA; --burdeos:#7A1F2B;
+  --burdeos-claro:#9E4A57; --rojo:#C0392B; --verde:#2F5A3D; --laton:#A98432;
   --tinta:#2A2622; --suave:#6B635C; --filete:#CFC8BD; }
 
 .app { background:var(--papel); color:var(--tinta); min-height:100vh;
-  padding:20px 22px 40px; font-family:'IBM Plex Sans Condensed',system-ui,sans-serif;
+  padding:20px 22px 40px; font-family:'Poppins',system-ui,Arial,sans-serif;
   font-size:14px; font-variant-numeric:tabular-nums; }
-.app *:focus-visible { outline:2px solid var(--morado); outline-offset:1px; }
+.app *:focus-visible { outline:2px solid var(--burdeos); outline-offset:1px; }
 
 /* cabecera */
 .cabecera { display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;
-  justify-content:space-between; border-bottom:2px solid var(--morado);
+  justify-content:space-between; border-bottom:2px solid var(--burdeos);
   padding-bottom:12px; margin-bottom:16px; }
-.cabecera__marca h1 { font-family:Spectral,Georgia,serif; font-weight:700;
+.cabecera__marca h1 { font-family:'Poppins',Arial,sans-serif; font-weight:700;
   font-size:26px; line-height:1.1; margin:0; letter-spacing:-.01em; }
 .cabecera__marca p { margin:3px 0 0; color:var(--suave); font-size:13px; max-width:62ch; }
 .cabecera__acciones { display:flex; gap:8px; }
 
 /* botones */
 .btn { display:inline-flex; align-items:center; gap:6px; font:inherit;
-  font-weight:500; padding:7px 12px; border:1px solid var(--morado);
-  background:var(--panel); color:var(--morado); cursor:pointer; border-radius:2px; }
-.btn:hover { background:#F2EDF3; }
-.btn--fuerte { background:var(--morado); color:#fff; }
-.btn--fuerte:hover { background:#5D2864; }
+  font-weight:500; padding:7px 12px; border:1px solid var(--burdeos);
+  background:var(--panel); color:var(--burdeos); cursor:pointer; border-radius:2px; }
+.btn:hover { background:#F7EDEF; }
+.btn--fuerte { background:var(--burdeos); color:#fff; }
+.btn--fuerte:hover { background:#5E151F; }
 .btn--fino { padding:5px 10px; font-size:13px; }
 
 /* avisos */
 .aviso { display:flex; align-items:center; gap:8px; padding:8px 11px;
-  margin-bottom:12px; border-left:3px solid var(--morado); background:var(--panel);
+  margin-bottom:12px; border-left:3px solid var(--burdeos); background:var(--panel);
   font-size:13px; }
-.aviso--error { border-left-color:var(--granate); color:var(--granate); }
+.aviso--error { border-left-color:var(--rojo); color:var(--rojo); }
 .aviso--ok { border-left-color:var(--verde); }
 .aviso__x { margin-left:auto; border:0; background:none; cursor:pointer;
   color:inherit; display:flex; padding:2px; }
@@ -53,7 +53,7 @@ body { background: #E8E4DC; }
   background:var(--panel); border:1px solid var(--filete); padding:14px 16px;
   margin-bottom:16px; }
 .resumen__cifra { display:flex; flex-direction:column; }
-.resumen__cifra strong { font-family:Spectral,serif; font-size:34px; line-height:.95;
+.resumen__cifra strong { font-family:'Poppins',Arial,sans-serif; font-size:34px; line-height:.95;
   font-weight:600; }
 .resumen__cifra span { color:var(--suave); font-size:12px; }
 .resumen__bloques { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
@@ -61,7 +61,7 @@ body { background: #E8E4DC; }
   border-radius:2px; }
 .pastilla--honorarios { border-color:var(--laton); }
 .pastilla--titulares { border-color:var(--verde); }
-.pastilla--suplentes { border-color:var(--morado-claro); }
+.pastilla--suplentes { border-color:var(--burdeos-claro); }
 .resumen .aviso { flex-basis:100%; margin:0; }
 
 .tabla-mini { border-collapse:collapse; font-size:13px; }
@@ -74,7 +74,7 @@ body { background: #E8E4DC; }
 .pest { font:inherit; font-weight:500; padding:8px 14px; border:0;
   background:none; cursor:pointer; color:var(--suave); border-bottom:2px solid transparent; }
 .pest:hover { color:var(--tinta); }
-.pest--activa { color:var(--morado); border-bottom-color:var(--morado); }
+.pest--activa { color:var(--burdeos); border-bottom-color:var(--burdeos); }
 
 /* barra de herramientas */
 .barra { display:flex; flex-wrap:wrap; gap:10px; align-items:center;
@@ -87,17 +87,17 @@ body { background: #E8E4DC; }
 .anio-x { display:inline-flex; align-items:center; gap:4px; font:inherit;
   font-size:12px; padding:3px 7px; border:1px solid var(--filete);
   background:var(--panel); cursor:pointer; color:var(--suave); }
-.anio-x:hover { border-color:var(--granate); color:var(--granate); }
+.anio-x:hover { border-color:var(--rojo); color:var(--rojo); }
 .nota-filtro { font-size:12px; color:var(--suave); font-style:italic; }
 
 /* rejilla */
 .lienzo { background:var(--panel); border:1px solid var(--filete); overflow:auto;
   max-height:70vh; }
 .rejilla { border-collapse:separate; border-spacing:0; width:100%; font-size:13px; }
-.rejilla thead th { position:sticky; top:0; z-index:2; background:var(--morado);
+.rejilla thead th { position:sticky; top:0; z-index:2; background:var(--burdeos);
   color:#fff; font-weight:600; text-align:left; padding:6px 8px; font-size:12px;
   white-space:nowrap; }
-.rejilla thead tr:nth-child(2) th { top:26px; background:var(--morado-claro); }
+.rejilla thead tr:nth-child(2) th { top:26px; background:var(--burdeos-claro); }
 .rejilla th.th-anio { text-align:center; border-left:1px solid rgba(255,255,255,.35); }
 .rejilla th.th-marca { text-align:center; }
 .rejilla th.th-num { width:44px; }
@@ -114,12 +114,12 @@ body { background: #E8E4DC; }
 .bloque--titulares { color:var(--verde); }
 .bloque--honorarios { color:var(--laton); }
 .cifra { text-align:right; white-space:nowrap; }
-.cifra--debe { color:var(--granate); }
+.cifra--debe { color:var(--rojo); }
 
 .txt { font:inherit; width:100%; min-width:80px; border:1px solid transparent;
   background:none; padding:3px 5px; color:inherit; }
 .txt:hover { border-color:var(--filete); }
-.txt:focus { border-color:var(--morado); background:#fff; outline:none; }
+.txt:focus { border-color:var(--burdeos); background:#fff; outline:none; }
 .txt--corto { min-width:60px; }
 .sel { font:inherit; font-size:12px; border:1px solid var(--filete);
   background:#fff; padding:3px 4px; color:var(--suave); }
@@ -131,17 +131,17 @@ body { background: #E8E4DC; }
 .m { font:inherit; font-weight:600; width:34px; height:24px; cursor:pointer;
   border:1px solid var(--filete); background:#fff; border-radius:2px; }
 .m--si { color:var(--verde); border-color:var(--verde); background:#F1F6F2; }
-.m--no { color:var(--granate); border-color:var(--granate); background:#FBF1F2; }
+.m--no { color:var(--rojo); border-color:var(--rojo); background:#FBF1F2; }
 .m--just { color:var(--laton); border-color:var(--laton); background:#FBF7EE; }
 .m--vacia { color:#C4BCB2; }
-.m:hover { border-color:var(--morado); }
+.m:hover { border-color:var(--burdeos); }
 
 /* acciones de fila */
 .acc { display:flex; gap:2px; }
 .acc button { border:1px solid transparent; background:none; cursor:pointer;
   color:var(--suave); display:flex; padding:3px; border-radius:2px; }
-.acc button:hover { border-color:var(--filete); color:var(--morado); background:#fff; }
-.acc--peligro:hover { color:var(--granate) !important; border-color:var(--granate) !important; }
+.acc button:hover { border-color:var(--filete); color:var(--burdeos); background:#fff; }
+.acc--peligro:hover { color:var(--rojo) !important; border-color:var(--rojo) !important; }
 
 /* la raya de latón: el cierre del cupo */
 .cupo td { padding:0 !important; border:0 !important; position:relative;
@@ -154,8 +154,8 @@ body { background: #E8E4DC; }
 
 /* vacío */
 .vacio { padding:46px 20px; text-align:center; }
-.vacio p { margin:0 0 4px; font-family:Spectral,serif; font-size:20px; }
-.vacio__ayuda { font-family:'IBM Plex Sans Condensed',sans-serif !important;
+.vacio p { margin:0 0 4px; font-family:'Poppins',Arial,sans-serif; font-size:20px; }
+.vacio__ayuda { font-family:'Poppins',Arial,sans-serif !important;
   font-size:14px !important; color:var(--suave); }
 .vacio__acciones { display:flex; gap:8px; justify-content:center; margin-top:16px; }
 
@@ -169,17 +169,23 @@ body { background: #E8E4DC; }
   color:var(--tinta); width:150px; }
 .panel-impr__nota { color:var(--suave); font-size:13px; max-width:70ch;
   margin:12px 0 0; }
+.anios-blancos { display:flex; flex-direction:column; gap:4px; min-width:150px; }
+.anios-blancos__fila { display:flex; gap:4px; }
+.anios-blancos__fila input { width:150px; }
+.anios-blancos__x { border:1px solid var(--filete); background:#fff;
+  color:var(--suave); padding:0 6px; cursor:pointer; }
+.anios-blancos__x:hover { color:var(--tinta); }
 .previa { margin-top:16px; border-top:1px solid var(--filete); padding-top:16px;
   max-height:46vh; overflow:auto; background:#fff; }
 
 /* documento imprimible */
 .impresion { padding:8px 14px; color:#000; }
-.impresion__titulo { font-family:Spectral,serif; font-size:19px; text-align:center;
+.impresion__titulo { font-family:'Poppins',Arial,sans-serif; font-size:19px; text-align:center;
   margin:0 0 2px; text-transform:uppercase; letter-spacing:.02em; }
 .impresion__sub { text-align:center; font-size:11px; color:#555; margin:0 0 14px; }
 .impresion__bloque { margin-bottom:16px; break-inside:auto; }
-.impresion__bloque h2 { font-family:Spectral,serif; font-size:14px;
-  color:var(--morado); margin:12px 0 4px; }
+.impresion__bloque h2 { font-family:'Poppins',Arial,sans-serif; font-size:14px;
+  color:var(--burdeos); margin:12px 0 4px; }
 .impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
 .impresion table { border-collapse:collapse; width:100%; font-size:11px; }
 .impresion th { background:#E4E0DA; border:1px solid #999; padding:3px 5px;
@@ -204,7 +210,7 @@ body { background: #E8E4DC; }
 
 /* pantalla previa a que lleguen los datos del servidor */
 .arranque { max-width:52ch; margin:18vh auto; padding:0 20px; text-align:center; }
-.arranque h1 { font-family:Spectral,serif; font-size:24px; margin:0 0 10px; }
+.arranque h1 { font-family:'Poppins',Arial,sans-serif; font-size:24px; margin:0 0 10px; }
 .arranque p { color:var(--suave); margin:0 0 6px; }
 .arranque__error { color:#a8271c; font-weight:600; }
 .arranque__ayuda { font-size:13px; }

@@ -1,4 +1,4 @@
-import { Printer } from "lucide-react";
+import { Plus, Printer, X } from "lucide-react";
 
 import type { CfgImpresion, Estado, TipoListado } from "../types";
 import { VistaImpresion } from "./VistaImpresion";
@@ -10,6 +10,27 @@ interface Props {
 }
 
 export function PanelImpresion({ est, cfg, setCfg }: Props) {
+  const anadirAnioNuevo = () =>
+    setCfg((c) => ({
+      ...c,
+      aniosNuevos: [
+        ...c.aniosNuevos,
+        (c.aniosNuevos.length ? Math.max(...c.aniosNuevos) : c.anioAnterior) + 1,
+      ],
+    }));
+
+  const cambiarAnioNuevo = (i: number, valor: number) =>
+    setCfg((c) => ({
+      ...c,
+      aniosNuevos: c.aniosNuevos.map((a, j) => (j === i ? valor : a)),
+    }));
+
+  const quitarAnioNuevo = (i: number) =>
+    setCfg((c) => ({
+      ...c,
+      aniosNuevos: c.aniosNuevos.filter((_, j) => j !== i),
+    }));
+
   return (
     <div className="panel-impr">
       <div className="panel-impr__cfg">
@@ -38,12 +59,29 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
         </label>
 
         <label>
-          Año en blanco
-          <input
-            type="number"
-            value={cfg.anioNuevo}
-            onChange={(e) => setCfg((c) => ({ ...c, anioNuevo: Number(e.target.value) }))}
-          />
+          Años en blanco
+          <span className="anios-blancos">
+            {cfg.aniosNuevos.map((a, i) => (
+              <span key={i} className="anios-blancos__fila">
+                <input
+                  type="number"
+                  value={a}
+                  onChange={(e) => cambiarAnioNuevo(i, Number(e.target.value))}
+                />
+                <button
+                  type="button"
+                  className="anios-blancos__x"
+                  onClick={() => quitarAnioNuevo(i)}
+                  title="Quitar este año"
+                >
+                  <X size={11} />
+                </button>
+              </span>
+            ))}
+            <button type="button" className="btn btn--fino" onClick={anadirAnioNuevo}>
+              <Plus size={13} /> Añadir
+            </button>
+          </span>
         </label>
 
         <label>
@@ -69,8 +107,8 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
 
       <p className="panel-impr__nota">
         Sale partido en los tres bloques, con el año que elijas ya rellenado y columnas
-        vacías para el nuevo. La cabecera se repite en cada página. Desde el diálogo de
-        impresión puedes guardarlo en PDF.
+        vacías para cada año nuevo. La cabecera se repite en cada página. Desde el
+        diálogo de impresión puedes guardarlo en PDF.
       </p>
 
       <div className="previa">

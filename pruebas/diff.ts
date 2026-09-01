@@ -17,7 +17,7 @@ const h = (id: string, p: Partial<Hermano> = {}): Hermano => ({
 });
 
 const est = (p: Partial<Estado> = {}): Estado => ({
-  cupo: 73, cuota: 10, aniosCuotas: [2026], aniosAsis: [2026], hermanos: [], ...p,
+  cupo: 73, cuota: 10, aniosCuotas: [2025], aniosAsis: [2025], hermanos: [], ...p,
 });
 
 const post = async (ops: unknown[]) => {
@@ -75,14 +75,14 @@ await caso("cambiar bloque y telefono a la vez", tres,
   { ...tres, hermanos: [h("a", { bloque: "HONORARIOS", telefono: "600" }), h("b"), h("c")] });
 
 await caso("marcar una cuota", tres,
-  { ...tres, hermanos: [h("a", { cuotas: { 2026: "S" } }), h("b"), h("c")] });
+  { ...tres, hermanos: [h("a", { cuotas: { 2025: "S" } }), h("b"), h("c")] });
 
 await caso("marcar las dos procesiones", tres,
-  { ...tres, hermanos: [h("a", { asis: { 2026: { exc: "V", sm: "FJ" } } }), h("b"), h("c")] });
+  { ...tres, hermanos: [h("a", { asis: { 2025: { exc: "V", sm: "FJ" } } }), h("b"), h("c")] });
 
 await caso("desmarcar (volver a vacio)",
-  est({ hermanos: [h("a", { cuotas: { 2026: "S" }, asis: { 2026: { exc: "V", sm: "V" } } }), h("b")] }),
-  est({ hermanos: [h("a", { cuotas: { 2026: "" }, asis: { 2026: { exc: "", sm: "V" } } }), h("b")] }));
+  est({ hermanos: [h("a", { cuotas: { 2025: "S" }, asis: { 2025: { exc: "V", sm: "V" } } }), h("b")] }),
+  est({ hermanos: [h("a", { cuotas: { 2025: "" }, asis: { 2025: { exc: "", sm: "V" } } }), h("b")] }));
 
 await caso("subir uno de puesto", tres,
   { ...tres, hermanos: [h("b"), h("a"), h("c")] });
@@ -97,11 +97,11 @@ await caso("borrar y reordenar de golpe", tres,
   { ...tres, hermanos: [h("c"), h("a")] });
 
 await caso("anadir un anio", tres,
-  { ...tres, aniosCuotas: [2026, 2027] });
+  { ...tres, aniosCuotas: [2025, 2026] });
 
 await caso("quitar un anio se lleva sus marcas",
-  est({ aniosCuotas: [2026, 2027], hermanos: [h("a", { cuotas: { 2026: "S", 2027: "N" } })] }),
-  est({ aniosCuotas: [2026], hermanos: [h("a", { cuotas: { 2026: "S" } })] }));
+  est({ aniosCuotas: [2025, 2026], hermanos: [h("a", { cuotas: { 2025: "S", 2026: "N" } })] }),
+  est({ aniosCuotas: [2025], hermanos: [h("a", { cuotas: { 2025: "S" } })] }));
 
 await caso("cambiar cupo y cuota", tres, { ...tres, cupo: 70, cuota: 12 });
 

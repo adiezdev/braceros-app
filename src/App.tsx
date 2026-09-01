@@ -40,7 +40,7 @@ export default function App() {
   const [cfgImpr, setCfgImpr] = useState<CfgImpresion>({
     tipo: "asistencias",
     anioAnterior: ANIO_BASE,
-    anioNuevo: ANIO_BASE + 1,
+    aniosNuevos: [ANIO_BASE + 1],
     blancos: 20,
   });
 
@@ -64,7 +64,7 @@ export default function App() {
         }
         reemplazar(nuevo);
         const ultimo = Math.max(...nuevo.aniosAsis, ...nuevo.aniosCuotas);
-        setCfgImpr((c) => ({ ...c, anioAnterior: ultimo, anioNuevo: ultimo + 1 }));
+        setCfgImpr((c) => ({ ...c, anioAnterior: ultimo, aniosNuevos: [ultimo + 1] }));
         setAviso({
           tono: "ok",
           texto: `Cargados ${nuevo.hermanos.length} hermanos y los años ${nuevo.aniosAsis.join(", ")}.`,
@@ -108,15 +108,24 @@ export default function App() {
 
   const anadirAnio = useCallback(
     (cual: "cuotas" | "asistencias") => {
-      setEst((p) => {
-        const clave = cual === "cuotas" ? "aniosCuotas" : "aniosAsis";
-        const lista = p[clave];
-        const siguiente = (lista.length ? Math.max(...lista) : ANIO_BASE) + 1;
-        if (lista.includes(siguiente)) return p;
-        return { ...p, [clave]: [...lista, siguiente].sort((a, b) => a - b) };
-      });
+      if (!est) return;
+      const clave = cual === "cuotas" ? "aniosCuotas" : "aniosAsis";
+      const lista = est[clave];
+      const sugerido = (lista.length ? Math.max(...lista) : ANIO_BASE) + 1;
+      const entrar = window.prompt("¿Qué año quieres añadir?", String(sugerido));
+      if (entrar === null) return;
+      const anio = Number(entrar);
+      if (!Number.isInteger(anio) || anio < 1900 || anio > 2200) {
+        window.alert("Ese no parece un año válido.");
+        return;
+      }
+      if (lista.includes(anio)) {
+        window.alert(`El año ${anio} ya está.`);
+        return;
+      }
+      setEst({ ...est, [clave]: [...lista, anio].sort((a, b) => a - b) });
     },
-    [setEst]
+    [est, setEst]
   );
 
   const quitarAnio = useCallback(

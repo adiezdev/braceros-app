@@ -31,56 +31,56 @@ await post([{
   tipo: "reemplazar",
   estado: {
     cupo: 73, cuota: 10,
-    aniosCuotas: [2026], aniosAsis: [2026],
+    aniosCuotas: [2025], aniosAsis: [2025],
     hermanos: [
-      { id: "a", nombre: "Ana",  bloque: "HONORARIOS", telefono: "1", notas: "", cuotas: { 2026: "S" }, asis: { 2026: { exc: "V", sm: "" } } },
+      { id: "a", nombre: "Ana",  bloque: "HONORARIOS", telefono: "1", notas: "", cuotas: { 2025: "S" }, asis: { 2025: { exc: "V", sm: "" } } },
       { id: "b", nombre: "Bea",  bloque: "TITULARES",  telefono: "2", notas: "", cuotas: {},            asis: {} },
-      { id: "c", nombre: "Caro", bloque: "SUPLENTES",  telefono: "3", notas: "", cuotas: { 2026: "N" }, asis: { 2026: { exc: "FJ", sm: "F" } } },
+      { id: "c", nombre: "Caro", bloque: "SUPLENTES",  telefono: "3", notas: "", cuotas: { 2025: "N" }, asis: { 2025: { exc: "FJ", sm: "F" } } },
     ],
   },
 }]);
 
 let e = (await leer()).estado;
 comprobar("reemplazar: orden y nombres", e.hermanos.map((h) => h.nombre), ["Ana", "Bea", "Caro"]);
-comprobar("reemplazar: cuota de Ana", e.hermanos[0].cuotas, { 2026: "S" });
-comprobar("reemplazar: asistencia de Caro", e.hermanos[2].asis, { 2026: { exc: "FJ", sm: "F" } });
+comprobar("reemplazar: cuota de Ana", e.hermanos[0].cuotas, { 2025: "S" });
+comprobar("reemplazar: asistencia de Caro", e.hermanos[2].asis, { 2025: { exc: "FJ", sm: "F" } });
 comprobar("reemplazar: vacio no se guarda", e.hermanos[1].cuotas, {});
-comprobar("reemplazar: anios", [e.aniosCuotas, e.aniosAsis], [[2026], [2026]]);
+comprobar("reemplazar: anios", [e.aniosCuotas, e.aniosAsis], [[2025], [2025]]);
 
 // 2. operaciones granulares, que es el camino normal al usar la app
 const { version: v1 } = await post([
   { tipo: "hermano.campos", id: "b", nombre: "Beatriz" },
-  { tipo: "cuota", hermanoId: "b", anio: 2026, estado: "S" },
-  { tipo: "asistencia", hermanoId: "b", anio: 2026, procesion: "sm", marca: "V" },
-  { tipo: "cuota", hermanoId: "a", anio: 2026, estado: "" },
+  { tipo: "cuota", hermanoId: "b", anio: 2025, estado: "S" },
+  { tipo: "asistencia", hermanoId: "b", anio: 2025, procesion: "sm", marca: "V" },
+  { tipo: "cuota", hermanoId: "a", anio: 2025, estado: "" },
   { tipo: "hermano.orden", ids: ["c", "a", "b"] },
 ]);
 
 e = (await leer()).estado;
 comprobar("campos: solo cambia el nombre", [e.hermanos.find(h=>h.id==="b").nombre, e.hermanos.find(h=>h.id==="b").telefono], ["Beatriz", "2"]);
-comprobar("cuota nueva de Beatriz", e.hermanos.find(h=>h.id==="b").cuotas, { 2026: "S" });
-comprobar("asistencia nueva de Beatriz", e.hermanos.find(h=>h.id==="b").asis, { 2026: { exc: "", sm: "V" } });
+comprobar("cuota nueva de Beatriz", e.hermanos.find(h=>h.id==="b").cuotas, { 2025: "S" });
+comprobar("asistencia nueva de Beatriz", e.hermanos.find(h=>h.id==="b").asis, { 2025: { exc: "", sm: "V" } });
 comprobar("cuota vacia borra la fila", e.hermanos.find(h=>h.id==="a").cuotas, {});
 comprobar("reordenar", e.hermanos.map((h) => h.id), ["c", "a", "b"]);
 
 // 3. alta, baja y año nuevo
 await post([
-  { tipo: "anio.alta", cual: "cuotas", anio: 2027 },
+  { tipo: "anio.alta", cual: "cuotas", anio: 2026 },
   { tipo: "hermano.alta", id: "d", nombre: "Diego", bloque: "SUPLENTES", telefono: "", notas: "nuevo" },
   { tipo: "hermano.orden", ids: ["c", "a", "b", "d"] },
-  { tipo: "cuota", hermanoId: "d", anio: 2027, estado: "N" },
+  { tipo: "cuota", hermanoId: "d", anio: 2026, estado: "N" },
   { tipo: "hermano.baja", id: "a" },
 ]);
 
 e = (await leer()).estado;
 comprobar("alta y baja", e.hermanos.map((h) => h.nombre), ["Caro", "Beatriz", "Diego"]);
-comprobar("anio nuevo", e.aniosCuotas, [2026, 2027]);
-comprobar("cuota en el anio nuevo", e.hermanos[2].cuotas, { 2027: "N" });
+comprobar("anio nuevo", e.aniosCuotas, [2025, 2026]);
+comprobar("cuota en el anio nuevo", e.hermanos[2].cuotas, { 2026: "N" });
 
 // 4. quitar un año se lleva sus marcas por cascada
-await post([{ tipo: "anio.baja", cual: "cuotas", anio: 2027 }]);
+await post([{ tipo: "anio.baja", cual: "cuotas", anio: 2026 }]);
 e = (await leer()).estado;
-comprobar("baja de anio: la columna se va", e.aniosCuotas, [2026]);
+comprobar("baja de anio: la columna se va", e.aniosCuotas, [2025]);
 comprobar("baja de anio: sus marcas tambien", e.hermanos[2].cuotas, {});
 
 // 5. la version avanza con cada cambio (es lo que sondean los navegadores)
@@ -92,7 +92,7 @@ comprobar("ajustes", [e.cupo, e.cuota], [70, 12]);
 // 6. rechazo de basura
 for (const [nombre, op] of [
   ["bloque invalido", { tipo: "hermano.campos", id: "b", bloque: "OBISPOS" }],
-  ["marca invalida",  { tipo: "asistencia", hermanoId: "b", anio: 2026, procesion: "sm", marca: "Z" }],
+  ["marca invalida",  { tipo: "asistencia", hermanoId: "b", anio: 2025, procesion: "sm", marca: "Z" }],
   ["anio imposible",  { tipo: "cuota", hermanoId: "b", anio: 99999, estado: "S" }],
   ["tipo inventado",  { tipo: "hermano.teletransportar", id: "b" }],
 ]) {

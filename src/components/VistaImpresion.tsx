@@ -8,7 +8,7 @@ interface Props {
 
 export function VistaImpresion({ est, cfg }: Props) {
   const { hermanos, cuota } = est;
-  const { tipo, anioAnterior, anioNuevo, blancos } = cfg;
+  const { tipo, anioAnterior, aniosNuevos, blancos } = cfg;
 
   const grupos = BLOQUES.map((b) => ({
     bloque: b,
@@ -24,25 +24,38 @@ export function VistaImpresion({ est, cfg }: Props) {
           "Nombre completo",
           `${PROCESIONES[0].corto} ${anioAnterior}`,
           `${PROCESIONES[1].corto} ${anioAnterior}`,
-          `${PROCESIONES[0].corto} ${anioNuevo}`,
-          `${PROCESIONES[1].corto} ${anioNuevo}`,
+          ...aniosNuevos.flatMap((a) => [
+            `${PROCESIONES[0].corto} ${a}`,
+            `${PROCESIONES[1].corto} ${a}`,
+          ]),
         ]
-      : ["Nº", "Nombre completo", `Cuota ${anioAnterior}`, `Cuota ${anioNuevo}`];
+      : [
+          "Nº",
+          "Nombre completo",
+          `Cuota ${anioAnterior}`,
+          ...aniosNuevos.map((a) => `Cuota ${a}`),
+        ];
 
   const valores = (h: Hermano): string[] =>
     tipo === "asistencias"
-      ? [h.asis?.[anioAnterior]?.exc ?? "", h.asis?.[anioAnterior]?.sm ?? "", "", ""]
-      : [h.cuotas?.[anioAnterior] ?? "", ""];
+      ? [
+          h.asis?.[anioAnterior]?.exc ?? "",
+          h.asis?.[anioAnterior]?.sm ?? "",
+          ...aniosNuevos.flatMap(() => ["", ""]),
+        ]
+      : [h.cuotas?.[anioAnterior] ?? "", ...aniosNuevos.map(() => "")];
 
   const ultimo = hermanos.length;
+
+  const textoAnios = aniosNuevos.length > 1 ? `años ${aniosNuevos.join(", ")}` : `año ${aniosNuevos[0]}`;
 
   return (
     <div className="impresion">
       <h1 className="impresion__titulo">{ENTIDAD}</h1>
       <p className="impresion__sub">
         {tipo === "asistencias"
-          ? `Asistencia a las procesiones · año ${anioNuevo}`
-          : `Cuotas · año ${anioNuevo} · ${cuota} € anuales`}
+          ? `Asistencia a las procesiones · ${textoAnios}`
+          : `Cuotas · ${textoAnios} · ${cuota} € anuales`}
       </p>
 
       {grupos.map(({ bloque, filas }) => (

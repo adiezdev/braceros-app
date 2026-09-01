@@ -13,7 +13,7 @@ export const CICLO_CUOTA: Cuota[] = ["", "S", "N"];
 export const CICLO_MARCA: Marca[] = ["", "V", "F", "FJ"];
 
 /** Año al que corresponden las marcas transcritas de las hojas manuscritas. */
-export const ANIO_BASE = 2026;
+export const ANIO_BASE = 2025;
 
 export const CUPO_POR_DEFECTO = 73;
 export const CUOTA_POR_DEFECTO = 10;
