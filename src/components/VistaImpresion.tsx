@@ -118,7 +118,9 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
     );
   }
 
-  /* Impresión: portada + hojas paginadas con cabecera repetida y numeración. */
+  /* Impresión: portada + bloques seguidos rellenando hojas.
+     Cada bloque es su propia tabla (cabecera repetida) y una tabla nunca
+     se corta a mitad: si no cabe, pasa entera a la siguiente hoja. */
   const hojas: Hoja[] = [];
   BLOQUES.forEach((bloque) => {
     const filasBloque: Fila[] = hermanos
@@ -138,8 +140,6 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
       });
     }
   });
-
-  const totalPaginas = hojas.length + 1;
 
   return (
     <div className="impresion impresion--print">
@@ -181,9 +181,6 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
               ))}
             </tbody>
           </table>
-          <p className="impresion__pag">
-            Página {i + 2} de {totalPaginas}
-          </p>
         </section>
       ))}
     </div>

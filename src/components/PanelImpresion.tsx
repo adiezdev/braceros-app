@@ -131,9 +131,10 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
         </div>
 
         <p className="panel-impr__nota">
-          Imprime la portada con el escudo y después el listado partido por hojas:
-          la cabecera se repite al principio de cada hoja y el pie lleva la numeración
-          de páginas. El documento queda oculto hasta que pulsas imprimir.
+          Imprime la portada con el escudo y después el listado con los bloques
+          seguidos, rellenando cada hoja: la cabecera de la tabla se repite al inicio
+          de cada bloque y una tabla nunca se corta a mitad de una página. El
+          documento queda oculto hasta que pulsas imprimir.
         </p>
 
         <div className="previa">
