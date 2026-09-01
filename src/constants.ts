@@ -12,8 +12,6 @@ export const PROCESIONES: { clave: ClaveProcesion; corto: string; largo: string 
 export const CICLO_CUOTA: Cuota[] = ["", "S", "N"];
 export const CICLO_MARCA: Marca[] = ["", "V", "F", "FJ"];
 
-export const CLAVE_GUARDADO = "braceros:estado";
-
 /** Año al que corresponden las marcas transcritas de las hojas manuscritas. */
 export const ANIO_BASE = 2026;
 

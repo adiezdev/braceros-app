@@ -1,0 +1,51 @@
+# Para desarrollar y probar EN TU MÁQUINA. El del NAS es deploy/docker-compose.yml.
+#
+# Aquí las imágenes se construyen del código local en vez de bajarlas de
+# GitHub, y Postgres sí asoma el puerto para poder mirarlo con un cliente.
+#
+#   docker compose up --build        levanta todo en http://localhost:8087
+#   docker compose down              lo para
+#   docker compose down -v           lo para y BORRA los datos de prueba
+#
+# Para trabajar en la interfaz con recarga en caliente, levanta solo la base
+# y la api, y lanza `pnpm dev` aparte (vite ya manda /api al puerto 3000):
+#
+#   docker compose up postgres api
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: braceros
+      POSTGRES_USER: braceros
+      POSTGRES_PASSWORD: desarrollo
+    ports:
+      - "5432:5432" # solo en local, para poder asomarse con psql o DBeaver
+    volumes:
+      - datos-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U braceros -d braceros"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: ./api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://braceros:desarrollo@postgres:5432/braceros
+      LOG_LEVEL: debug
+    ports:
+      - "3000:3000" # para que `pnpm dev` pueda llegar sin pasar por nginx
+
+  braceros:
+    build: .
+    depends_on:
+      - api
+    ports:
+      - "8087:80"
+
+volumes:
+  datos-dev:

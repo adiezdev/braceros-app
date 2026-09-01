@@ -1,0 +1,22 @@
+{
+  "name": "braceros-api",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "API de la Agrupación de Braceros de San Martín",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch --preserveWatchOutput & node --watch dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fastify": "^5.2.1",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.7.3"
+  }
+}

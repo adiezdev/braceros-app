@@ -190,7 +190,25 @@ body { background: #E8E4DC; }
 
 .solo-impresion { display:none; }
 
-.pie { margin-top:14px; font-size:12px; color:var(--suave); }
+.pie { margin-top:14px; font-size:12px; color:var(--suave);
+  display:flex; flex-wrap:wrap; gap:4px 14px; align-items:baseline; }
+
+/* indicador de guardado */
+.estado { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+.estado::before { content:''; width:7px; height:7px; border-radius:50%;
+  background:currentColor; flex:none; }
+.estado--guardado  { color:#2f6b45; }
+.estado--guardando { color:var(--suave); }
+.estado--cargando  { color:var(--suave); }
+.estado--error     { color:#a8271c; font-weight:600; }
+
+/* pantalla previa a que lleguen los datos del servidor */
+.arranque { max-width:52ch; margin:18vh auto; padding:0 20px; text-align:center; }
+.arranque h1 { font-family:Spectral,serif; font-size:24px; margin:0 0 10px; }
+.arranque p { color:var(--suave); margin:0 0 6px; }
+.arranque__error { color:#a8271c; font-weight:600; }
+.arranque__ayuda { font-size:13px; }
+.arranque .btn { margin-top:14px; }
 
 @media print {
   .app { display:none !important; }

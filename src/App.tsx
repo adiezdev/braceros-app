@@ -1,5 +1,5 @@
 import { Download, Plus, RotateCcw, Search, Upload, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { Aviso as AvisoUI } from "./components/Aviso";
 import { PanelImpresion } from "./components/PanelImpresion";
@@ -8,11 +8,12 @@ import { TablaAsistencias } from "./components/TablaAsistencias";
 import { TablaCuotas } from "./components/TablaCuotas";
 import { TablaHermanos } from "./components/TablaHermanos";
 import { VistaImpresion } from "./components/VistaImpresion";
-import { ANIO_BASE, CLAVE_GUARDADO, ENTIDAD } from "./constants";
-import { almacen } from "./lib/almacen";
+import { ANIO_BASE, ENTIDAD } from "./constants";
 import { descargarLibro, leerLibro } from "./lib/libro";
 import { crearHermano, estadoInicial } from "./lib/modelo";
-import type { Aviso, CfgImpresion, Estado, Pestana } from "./types";
+import { useEstado } from "./lib/useEstado";
+import type { Conexion } from "./lib/useEstado";
+import type { Aviso, CfgImpresion, Pestana } from "./types";
 
 const PESTANAS: [Pestana, string][] = [
   ["hermanos", "Hermanos"],
@@ -21,12 +22,19 @@ const PESTANAS: [Pestana, string][] = [
   ["imprimir", "Listado en papel"],
 ];
 
+const TEXTO_CONEXION: Record<Conexion, string> = {
+  cargando: "Cargando…",
+  guardando: "Guardando…",
+  guardado: "Guardado en el servidor",
+  error: "Sin conexión con el servidor",
+};
+
 export default function App() {
-  const [est, setEst] = useState<Estado>(estadoInicial);
+  const { est, setEst, reemplazar, conexion, error, recargar } = useEstado();
+
   const [pestana, setPestana] = useState<Pestana>("hermanos");
   const [filtro, setFiltro] = useState("");
   const [aviso, setAviso] = useState<Aviso | null>(null);
-  const [cargado, setCargado] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [cfgImpr, setCfgImpr] = useState<CfgImpresion>({
@@ -36,49 +44,43 @@ export default function App() {
     blancos: 20,
   });
 
-  /* --- persistencia ---------------------------------------------- */
-  useEffect(() => {
-    let vivo = true;
-    almacen.leer<Estado>(CLAVE_GUARDADO).then((guardado) => {
-      if (!vivo) return;
-      if (guardado?.hermanos?.length) setEst(guardado);
-      setCargado(true);
-    });
-    return () => {
-      vivo = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (cargado) void almacen.escribir(CLAVE_GUARDADO, est);
-  }, [est, cargado]);
-
   /* --- acciones --------------------------------------------------- */
-  const importar = useCallback(async (file: File | undefined) => {
-    if (!file) return;
-    try {
-      const buf = await file.arrayBuffer();
-      const nuevo = await leerLibro(new Uint8Array(buf));
-      if (!nuevo.hermanos.length) {
-        setAviso({ tono: "error", texto: "La hoja Hermanos no tiene ningún nombre." });
-        return;
+  const importar = useCallback(
+    async (file: File | undefined) => {
+      if (!file) return;
+      try {
+        const buf = await file.arrayBuffer();
+        const nuevo = await leerLibro(new Uint8Array(buf));
+        if (!nuevo.hermanos.length) {
+          setAviso({ tono: "error", texto: "La hoja Hermanos no tiene ningún nombre." });
+          return;
+        }
+        if (
+          !window.confirm(
+            `Esto sustituye la lista del servidor por los ${nuevo.hermanos.length} hermanos del Excel, para todo el mundo. ¿Sigo?`
+          )
+        ) {
+          return;
+        }
+        reemplazar(nuevo);
+        const ultimo = Math.max(...nuevo.aniosAsis, ...nuevo.aniosCuotas);
+        setCfgImpr((c) => ({ ...c, anioAnterior: ultimo, anioNuevo: ultimo + 1 }));
+        setAviso({
+          tono: "ok",
+          texto: `Cargados ${nuevo.hermanos.length} hermanos y los años ${nuevo.aniosAsis.join(", ")}.`,
+        });
+      } catch (e) {
+        setAviso({
+          tono: "error",
+          texto: e instanceof Error ? e.message : "No he podido leer el fichero.",
+        });
       }
-      setEst(nuevo);
-      const ultimo = Math.max(...nuevo.aniosAsis, ...nuevo.aniosCuotas);
-      setCfgImpr((c) => ({ ...c, anioAnterior: ultimo, anioNuevo: ultimo + 1 }));
-      setAviso({
-        tono: "ok",
-        texto: `Cargados ${nuevo.hermanos.length} hermanos y los años ${nuevo.aniosAsis.join(", ")}.`,
-      });
-    } catch (e) {
-      setAviso({
-        tono: "error",
-        texto: e instanceof Error ? e.message : "No he podido leer el fichero.",
-      });
-    }
-  }, []);
+    },
+    [reemplazar]
+  );
 
   const exportar = useCallback(async () => {
+    if (!est) return;
     try {
       await descargarLibro(est);
       setAviso({ tono: "ok", texto: "Excel descargado." });
@@ -92,54 +94,84 @@ export default function App() {
 
   const restaurar = useCallback(() => {
     const ok = window.confirm(
-      "¿Volver a la lista transcrita de las hojas? Se pierden los cambios hechos aquí."
+      "¿Volver a la lista transcrita de las hojas? Se pierde lo apuntado en el servidor, para todo el mundo."
     );
     if (!ok) return;
-    setEst(estadoInicial());
+    reemplazar(estadoInicial());
     setAviso({ tono: "ok", texto: "Lista restaurada tal como se transcribió." });
-  }, []);
+  }, [reemplazar]);
 
   const anadirHermano = useCallback(
     () => setEst((p) => ({ ...p, hermanos: [...p.hermanos, crearHermano()] })),
-    []
+    [setEst]
   );
 
-  const anadirAnio = useCallback((cual: "cuotas" | "asistencias") => {
-    setEst((p) => {
-      const clave = cual === "cuotas" ? "aniosCuotas" : "aniosAsis";
-      const lista = p[clave];
-      const siguiente = (lista.length ? Math.max(...lista) : ANIO_BASE) + 1;
-      if (lista.includes(siguiente)) return p;
-      return { ...p, [clave]: [...lista, siguiente].sort((a, b) => a - b) };
-    });
-  }, []);
+  const anadirAnio = useCallback(
+    (cual: "cuotas" | "asistencias") => {
+      setEst((p) => {
+        const clave = cual === "cuotas" ? "aniosCuotas" : "aniosAsis";
+        const lista = p[clave];
+        const siguiente = (lista.length ? Math.max(...lista) : ANIO_BASE) + 1;
+        if (lista.includes(siguiente)) return p;
+        return { ...p, [clave]: [...lista, siguiente].sort((a, b) => a - b) };
+      });
+    },
+    [setEst]
+  );
 
-  const quitarAnio = useCallback((cual: "cuotas" | "asistencias", anio: number) => {
-    const que = cual === "cuotas" ? "las cuotas" : "las asistencias";
-    if (!window.confirm(`¿Quitar ${que} de ${anio}? Se borran esas marcas.`)) return;
-    setEst((p) => {
-      const clave = cual === "cuotas" ? "aniosCuotas" : "aniosAsis";
-      return {
-        ...p,
-        [clave]: p[clave].filter((a) => a !== anio),
-        hermanos: p.hermanos.map((h) => {
-          const cuotas = { ...h.cuotas };
-          const asis = { ...h.asis };
-          if (cual === "cuotas") delete cuotas[anio];
-          else delete asis[anio];
-          return { ...h, cuotas, asis };
-        }),
-      };
-    });
-  }, []);
+  const quitarAnio = useCallback(
+    (cual: "cuotas" | "asistencias", anio: number) => {
+      const que = cual === "cuotas" ? "las cuotas" : "las asistencias";
+      if (!window.confirm(`¿Quitar ${que} de ${anio}? Se borran esas marcas.`)) return;
+      setEst((p) => {
+        const clave = cual === "cuotas" ? "aniosCuotas" : "aniosAsis";
+        return {
+          ...p,
+          [clave]: p[clave].filter((a) => a !== anio),
+          hermanos: p.hermanos.map((h) => {
+            const cuotas = { ...h.cuotas };
+            const asis = { ...h.asis };
+            if (cual === "cuotas") delete cuotas[anio];
+            else delete asis[anio];
+            return { ...h, cuotas, asis };
+          }),
+        };
+      });
+    },
+    [setEst]
+  );
 
   /* --- derivados -------------------------------------------------- */
   const cualAnios: "cuotas" | "asistencias" =
     pestana === "cuotas" ? "cuotas" : "asistencias";
-  const aniosVista = useMemo(
-    () => (pestana === "cuotas" ? est.aniosCuotas : est.aniosAsis),
-    [pestana, est.aniosCuotas, est.aniosAsis]
-  );
+
+  const aniosVista = useMemo(() => {
+    if (!est) return [];
+    return pestana === "cuotas" ? est.aniosCuotas : est.aniosAsis;
+  }, [pestana, est]);
+
+  /* --- pantalla de carga ------------------------------------------ */
+  if (!est) {
+    return (
+      <div className="arranque">
+        <h1>{ENTIDAD}</h1>
+        {conexion === "error" ? (
+          <>
+            <p className="arranque__error">{error ?? "No llego al servidor."}</p>
+            <p className="arranque__ayuda">
+              Los datos están en el NAS. Comprueba que estás en la VPN y que los
+              contenedores siguen levantados.
+            </p>
+            <button className="btn btn--fuerte" onClick={recargar}>
+              <RotateCcw size={15} /> Reintentar
+            </button>
+          </>
+        ) : (
+          <p>Cargando la lista…</p>
+        )}
+      </div>
+    );
+  }
 
   const vacia = est.hermanos.length === 0;
 
@@ -184,6 +216,13 @@ export default function App() {
         {aviso && (
           <AvisoUI tono={aviso.tono} onCerrar={() => setAviso(null)}>
             {aviso.texto}
+          </AvisoUI>
+        )}
+
+        {conexion === "error" && (
+          <AvisoUI tono="error" onCerrar={recargar}>
+            {error ?? "Sin conexión con el servidor."} Lo que cambies ahora se
+            reintenta solo; no cierres la pestaña hasta que vuelva.
           </AvisoUI>
         )}
 
@@ -279,8 +318,11 @@ export default function App() {
         </main>
 
         <footer className="pie">
-          La lista viene dentro de la aplicación y los cambios se guardan en este
-          navegador. Descarga el Excel cuando quieras una copia fuera de aquí.
+          <span className={`estado estado--${conexion}`}>{TEXTO_CONEXION[conexion]}</span>
+          <span>
+            Los datos están en el NAS y los ve todo el mundo. Descarga el Excel
+            cuando quieras una copia fuera de aquí.
+          </span>
         </footer>
       </div>
 

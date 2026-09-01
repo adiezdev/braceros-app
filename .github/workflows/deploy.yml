@@ -1,4 +1,4 @@
-name: Publicar imagen
+name: Publicar imágenes
 
 # Se dispara con cada push a main, y también a mano desde la pestaña Actions
 # de GitHub (botón "Run workflow"), por si quieres reconstruir sin tocar código.
@@ -8,21 +8,37 @@ on:
   workflow_dispatch:
 
 jobs:
-  imagen:
+  imagenes:
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
-      packages: write # necesario para poder subir la imagen a ghcr.io
+      packages: write # necesario para subir a ghcr.io
+
+    # Las dos imágenes se construyen a la vez y por separado. Si falla una,
+    # la otra no se publica: el compose del NAS quedaría descuadrado.
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - nombre: app # nginx con la interfaz
+            contexto: .
+            dockerfile: ./Dockerfile
+            sufijo: ""
+          - nombre: api # Node contra Postgres
+            contexto: ./api
+            dockerfile: ./api/Dockerfile
+            sufijo: "-api"
+
+    name: ${{ matrix.nombre }}
 
     steps:
       - uses: actions/checkout@v4
 
-      # ghcr.io exige el nombre en minúsculas y el de usuario puede llevar
-      # mayúsculas, así que lo bajamos antes de usarlo.
+      # ghcr.io exige minúsculas y el usuario puede llevar mayúsculas.
       - name: Nombre de la imagen
         id: img
-        run: echo "nombre=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+        run: echo "nombre=${GITHUB_REPOSITORY,,}${{ matrix.sufijo }}" >> "$GITHUB_OUTPUT"
 
       - uses: docker/setup-buildx-action@v3
 
@@ -40,8 +56,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ steps.img.outputs.nombre }}
-          # :latest es la que sigue el NAS. La del hash del commit queda
-          # como histórico, para poder volver atrás si un cambio rompe algo.
+          # :latest es la que sigue el NAS. La del hash del commit queda de
+          # histórico, para poder volver atrás si algo se rompe.
           tags: |
             type=raw,value=latest
             type=sha,format=short
@@ -49,13 +65,13 @@ jobs:
       - name: Construir y subir
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ matrix.contexto }}
+          file: ${{ matrix.dockerfile }}
           # El DXP4800 es Intel, así que basta con amd64.
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Guarda las capas entre ejecuciones: el segundo build baja de
-          # ~2 min a ~30 s mientras no toques las dependencias.
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Caché entre ejecuciones, separada por imagen para que no se pisen.
+          cache-from: type=gha,scope=${{ matrix.nombre }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.nombre }}

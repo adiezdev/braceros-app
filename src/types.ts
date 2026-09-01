@@ -48,12 +48,3 @@ export interface Aviso {
   tono: "ok" | "error" | "info";
   texto: string;
 }
-
-declare global {
-  interface Window {
-    storage?: {
-      get(clave: string, compartido?: boolean): Promise<{ value: string } | null>;
-      set(clave: string, valor: string, compartido?: boolean): Promise<unknown>;
-    };
-  }
-}

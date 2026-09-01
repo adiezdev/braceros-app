@@ -6,9 +6,24 @@ import type { Bloque, Cuota, Estado, Hermano, Marca } from "../types";
 
 let contador = 0;
 
+/**
+ * La lista es compartida: dos personas pueden dar de alta a la vez desde
+ * navegadores distintos, así que un contador local no basta para no chocar.
+ *
+ * randomUUID solo existe en contexto seguro (https o localhost), y por VPN
+ * contra la IP del NAS se entra por http. getRandomValues sí está siempre,
+ * y es lo que de verdad importa aquí.
+ */
 export function nuevoId(): string {
+  const c = globalThis.crypto;
+  if (c?.randomUUID) return c.randomUUID();
+  if (c?.getRandomValues) {
+    const b = new Uint8Array(16);
+    c.getRandomValues(b);
+    return `h${Array.from(b, (n) => n.toString(16).padStart(2, "0")).join("")}`;
+  }
   contador += 1;
-  return `h${Date.now().toString(36)}${contador.toString(36)}`;
+  return `h${Date.now().toString(36)}${contador.toString(36)}${Math.random().toString(36).slice(2, 10)}`;
 }
 
 export function crearHermano(parcial: Partial<Hermano> = {}): Hermano {
