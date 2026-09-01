@@ -6,6 +6,8 @@ tsconfig.tsbuildinfo
 api/dist
 api/node_modules
 
-# Lleva el token de GitHub del NAS. Nunca se sube.
+# Llevan la contraseña de la base y el token de GitHub. Nunca se suben.
+# Las plantillas (.example) sí, que no tienen valores de verdad.
 .env
 deploy/.env
+deploy/docker-compose.ugos.yml
