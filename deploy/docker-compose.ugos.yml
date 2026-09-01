@@ -1,0 +1,134 @@
+# Versión sin .env, para pegar tal cual en el gestor de Docker del NAS.
+#
+# El otro fichero (docker-compose.yml) lee la configuración de un .env, que es
+# lo limpio pero necesita consola. Este la lleva escrita dentro, para cuando el
+# gestor web no deja crear ficheros que empiezan por punto.
+#
+# HAY QUE RELLENAR TRES COSAS. Están marcadas con <<< >>>.
+#
+# Ojo: al llevar la contraseña dentro, este fichero no se sube a GitHub. Si lo
+# guardas en una carpeta del NAS, que sea una a la que no llegue todo el mundo.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: braceros-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: braceros
+      POSTGRES_USER: braceros
+      # <<< 1. INVÉNTATE UNA CONTRASEÑA LARGA Y PÉGALA EN LOS DOS SITIOS >>>
+      # (aquí y en DATABASE_URL de abajo; tienen que ser idéntica)
+      # Solo se usa la primera vez, cuando se crea el volumen.
+      POSTGRES_PASSWORD: CAMBIAME
+      TZ: Europe/Madrid
+
+    volumes:
+      # Aquí viven los datos. Sobrevive a borrar y recrear los contenedores.
+      - datos:/var/lib/postgresql/data
+
+    # Deliberadamente SIN "ports": la base no se asoma a la red del NAS.
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U braceros -d braceros"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  api:
+    # <<< 2. TU USUARIO Y TU REPOSITORIO, EN MINÚSCULAS. Fíjate en el -api >>>
+    image: ghcr.io/tuusuario/braceros-app-api:latest
+    container_name: braceros-api
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      # <<< la MISMA contraseña que arriba, entre los dos puntos y la arroba >>>
+      DATABASE_URL: postgres://braceros:CAMBIAME@postgres:5432/braceros
+      TZ: Europe/Madrid
+
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/salud').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  braceros:
+    # <<< 3. lo mismo que arriba, pero SIN el -api >>>
+    image: ghcr.io/tuusuario/braceros-app:latest
+    container_name: braceros
+    restart: unless-stopped
+
+    depends_on:
+      - api
+
+    ports:
+      # izquierda = puerto del NAS, derecha = dentro del contenedor.
+      # El 80 y el 443 los usa UGOS para su propia interfaz.
+      - "8087:80"
+
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: braceros-watchtower
+    restart: unless-stopped
+
+    volumes:
+      # Le da acceso al Docker del NAS para poder reiniciar los contenedores.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Y aquí está el truco para no meter el token en este fichero: lee las
+      # credenciales del "docker login ghcr.io" que ya has hecho tú.
+      # Si tu usuario del NAS no es root, cambia la ruta de la izquierda.
+      - /root/.docker/config.json:/config.json:ro
+
+    environment:
+      WATCHTOWER_POLL_INTERVAL: 300
+      # Solo toca los contenedores con la etiqueta de arriba. Postgres NO la
+      # tiene a propósito: una base de datos no se actualiza sola de noche.
+      WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_CLEANUP: "true"
+      TZ: Europe/Madrid
+
+      # SI WATCHTOWER DA "unauthorized" EN SUS LOGS: es que tu config.json no
+      # guarda la contraseña, sino el nombre de un almacén externo (verás una
+      # línea "credsStore" al hacerle cat). Entonces borra el volumen de
+      # config.json de arriba y descomenta estas dos líneas:
+      # REPO_USER: tuusuario
+      # REPO_PASS: ghp_tu_token_con_read_packages
+
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+volumes:
+  datos:

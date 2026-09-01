@@ -56,6 +56,7 @@ antes las notas de la versión.
 | `.github/workflows/deploy.yml` | Lo que GitHub ejecuta en cada push |
 | `deploy/docker-compose.yml` | Lo que se ejecuta en el NAS |
 | `deploy/.env.example` | Plantilla de la configuración del NAS |
+| `deploy/docker-compose.ugos.yml` | Alternativa sin `.env`, para pegar en el gestor web del NAS |
 | `docker-compose.yml` | Para probarlo en tu máquina, no en el NAS |
 
 ---
@@ -148,6 +149,24 @@ chmod 600 .env
 > volumen. Cambiarla después en el `.env` no la cambia dentro de Postgres, y
 > la API se quedará fuera. Si algún día hay que cambiarla, se hace con
 > `ALTER USER` dentro de la base y luego en el `.env`.
+
+### Si el gestor de Docker del NAS no te deja crear el `.env`
+
+Es lo normal: el explorador de archivos web no muestra ni deja crear ficheros
+que empiezan por punto. Dos salidas:
+
+- **Créalo por SSH** con `nano .env`, como arriba. El gestor web lo usará
+  igual aunque no lo veas en la lista: la limitación es del explorador, no de
+  Docker.
+- **O usa `deploy/docker-compose.ugos.yml`**, que es el mismo montaje pero con
+  los valores escritos dentro en vez de en un `.env`. Tiene tres huecos
+  marcados con `<<< >>>`. Ese fichero acaba llevando la contraseña de la base,
+  así que no lo subas a GitHub ni lo dejes en una carpeta compartida con medio
+  mundo.
+
+Con el segundo, el token de GitHub **no** hace falta escribirlo en ningún
+sitio: watchtower lee las credenciales del `docker login` del paso 5, montando
+el `config.json` que ese comando deja escrito.
 
 ## Paso 5 — Arrancar
 
