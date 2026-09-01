@@ -183,10 +183,24 @@ body { background: #E8E4DC; }
 .impresion__titulo { font-family:'Poppins',Arial,sans-serif; font-size:19px; text-align:center;
   margin:0 0 2px; text-transform:uppercase; letter-spacing:.02em; }
 .impresion__sub { text-align:center; font-size:11px; color:#555; margin:0 0 14px; }
-.impresion__bloque { margin-bottom:16px; break-inside:auto; }
-.impresion__bloque h2 { font-family:'Poppins',Arial,sans-serif; font-size:14px;
-  color:var(--burdeos); margin:12px 0 4px; }
-.impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
+
+/* portada */
+.impresion__portada { display:flex; flex-direction:column; align-items:center;
+  justify-content:center; text-align:center; min-height:230mm; padding:0 20px;
+  page-break-after: always; break-after: page; }
+.impresion__portada .impresion__titulo { font-size:28px; margin-top:12px; }
+.impresion__portada .impresion__sub { font-size:13px; margin-top:6px; }
+.impresion__escudo { width:62mm; height:auto; }
+
+/* hojas paginadas: un A4 cada una, sin partirse por la mitad */
+.impresion__hoja { page-break-after: always; break-after: page;
+  page-break-inside: avoid; break-inside: avoid; }
+.impresion__hoja:last-child { page-break-after: auto; break-after: auto; }
+.impresion__hoja h2 { font-family:'Poppins',Arial,sans-serif; font-size:14px;
+  color:var(--burdeos); margin:4px 0 4px; }
+.impresion__hoja h2 span { color:#777; font-weight:400; font-size:12px; }
+.impresion__pag { text-align:center; font-size:10px; color:#777; margin:8px 0 0; }
+
 .impresion table { border-collapse:collapse; width:100%; font-size:11px; }
 .impresion th { background:#E4E0DA; border:1px solid #999; padding:3px 5px;
   text-align:center; font-weight:600; }
@@ -219,7 +233,6 @@ body { background: #E8E4DC; }
 @media print {
   .app { display:none !important; }
   .solo-impresion { display:block !important; }
-  .impresion__bloque h2 { break-after:avoid; }
   .impresion thead { display:table-header-group; }
   .impresion tr { break-inside:avoid; }
   @page { size:A4; margin:14mm; }

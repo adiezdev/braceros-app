@@ -106,9 +106,9 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
       </div>
 
       <p className="panel-impr__nota">
-        Sale partido en los tres bloques, con el año que elijas ya rellenado y columnas
-        vacías para cada año nuevo. La cabecera se repite en cada página. Desde el
-        diálogo de impresión puedes guardarlo en PDF.
+        Imprime la portada con el escudo y después el listado partido por hojas:
+        la cabecera se repite al principio de cada hoja y el pie lleva la numeración
+        de páginas. Desde el diálogo de impresión puedes guardarlo en PDF.
       </p>
 
       <div className="previa">
