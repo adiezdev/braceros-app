@@ -1,7 +1,14 @@
 ﻿import { diferencias } from "../src/lib/diff";
 import type { Estado, Hermano } from "../src/types";
 
-const BASE = "http://localhost:8087/api";
+// ESTO BORRA LA BASE ENTERA. El cerrojo está para que apuntar esto al NAS
+// "solo para probar una cosa" no se lleve por delante la lista de verdad.
+const BASE = process.env.API ?? "http://localhost:8087/api";
+if (!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/)/.test(BASE)) {
+  console.error(`Estas pruebas borran todos los datos. Solo contra la pila local, y ${BASE} no lo es.`);
+  process.exit(1);
+}
+
 let fallos = 0;
 
 const h = (id: string, p: Partial<Hermano> = {}): Hermano => ({
