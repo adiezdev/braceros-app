@@ -210,7 +210,8 @@ body { background: #E8E4DC; }
   font-size:14px; color:var(--burdeos); margin:0 0 4px; }
 .impresion--print .impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
 
-.impresion table { border-collapse:collapse; width:100%; font-size:11px; }
+.impresion table { border-collapse:collapse; width:100%; font-size:11px;
+  font-family:Arial,Helvetica,sans-serif; }
 .impresion th { background:#E4E0DA; border:1px solid #999; padding:3px 5px;
   text-align:center; font-weight:600; }
 .impresion th:nth-child(2) { text-align:left; }

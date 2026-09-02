@@ -42,9 +42,12 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
       ? [
           h.asis?.[anioAnterior]?.exc ?? "",
           h.asis?.[anioAnterior]?.sm ?? "",
-          ...aniosNuevos.flatMap(() => ["", ""]),
+          ...aniosNuevos.flatMap((a) => [
+            h.asis?.[a]?.exc ?? "",
+            h.asis?.[a]?.sm ?? "",
+          ]),
         ]
-      : [h.cuotas?.[anioAnterior] ?? "", ...aniosNuevos.map(() => "")];
+      : [h.cuotas?.[anioAnterior] ?? "", ...aniosNuevos.map((a) => h.cuotas?.[a] ?? "")];
 
   const textoAnios =
     aniosNuevos.length > 1
