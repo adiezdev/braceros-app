@@ -131,9 +131,10 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
         </div>
 
         <p className="panel-impr__nota">
-          Imprime la portada con el escudo y después el listado con los bloques
-          seguidos, rellenando cada hoja: la cabecera de la tabla se repite al inicio
-          de cada bloque y una tabla nunca se corta a mitad de una página. El
+          Imprime la portada con el escudo, centrada, y después el listado con
+          los bloques seguidos sin huecos: honorarios, titulares y suplentes
+          van uno debajo del otro rellenando cada hoja. La cabecera de la tabla
+          se repite al pasar de página y ninguna fila se corta a mitad. El
           documento queda oculto hasta que pulsas imprimir.
         </p>
 

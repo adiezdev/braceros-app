@@ -199,13 +199,16 @@ body { background: #E8E4DC; }
   font-size:14px; color:var(--burdeos); margin:10px 0 4px; }
 .impresion--previa .impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
 
-/* impresión: hojas paginadas, un A4 cada una sin partirse */
-.impresion--print .impresion__portada { min-height:0; page-break-after: always;
+/* impresión: portada a toda la primera hoja, luego los bloques fluyen y
+   las tablas se parten por filas al llenar cada hoja (la cabecera se repite).
+   La portada ocupa el área imprimible A4 (297mm − 14mm de margen arriba y
+   abajo = 269mm) y su contenido queda centrado en vertical gracias a flex. */
+.impresion--print { padding: 0; }
+.impresion--print .impresion__portada { height: 269mm; page-break-after: always;
   break-after: page; }
-.impresion--print .impresion__hoja { page-break-inside: avoid; break-inside: avoid; }
-.impresion--print .impresion__hoja h2 { font-family:'Poppins',Arial,sans-serif;
+.impresion--print .impresion__bloque h2 { font-family:'Poppins',Arial,sans-serif;
   font-size:14px; color:var(--burdeos); margin:0 0 4px; }
-.impresion--print .impresion__hoja h2 span { color:#777; font-weight:400; font-size:12px; }
+.impresion--print .impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
 
 .impresion table { border-collapse:collapse; width:100%; font-size:11px; }
 .impresion th { background:#E4E0DA; border:1px solid #999; padding:3px 5px;

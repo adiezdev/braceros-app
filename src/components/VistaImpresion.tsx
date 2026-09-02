@@ -2,25 +2,15 @@ import { BLOQUES, ENTIDAD, ETIQUETA_BLOQUE, PROCESIONES } from "../constants";
 import escudo from "../data/escudosm.png";
 import type { CfgImpresion, Estado, Hermano } from "../types";
 
-/** Filas que entran en una hoja A4 al imprimir. Se afina mirando el PDF. */
-const FILAS_POR_HOJA = 44;
-
 interface Fila {
   h: Hermano | null;
   n: number;
 }
 
-interface Hoja {
-  bloque: (typeof BLOQUES)[number];
-  esInicio: boolean;
-  totalBloque: number;
-  filas: Fila[];
-}
-
 interface Props {
   est: Estado;
   cfg: CfgImpresion;
-  /** true = por hojas (impresión), false = listado continuo (previsualización) */
+  /** true = impresión, false = previsualización (listado continuo en pantalla) */
   paraImpresion?: boolean;
 }
 
@@ -118,71 +108,62 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
     );
   }
 
-  /* Impresión: portada + bloques seguidos rellenando hojas.
-     Cada bloque es su propia tabla (cabecera repetida) y una tabla nunca
-     se corta a mitad: si no cabe, pasa entera a la siguiente hoja. */
-  const hojas: Hoja[] = [];
-  BLOQUES.forEach((bloque) => {
-    const filasBloque: Fila[] = hermanos
-      .map((h, i) => ({ h, n: i + 1 }))
-      .filter(({ h }) => h.bloque === bloque);
-    if (bloque === "SUPLENTES") {
-      for (let k = 0; k < blancos; k++) {
-        filasBloque.push({ h: null, n: ultimo + k + 1 });
-      }
-    }
-    for (let i = 0; i < filasBloque.length; i += FILAS_POR_HOJA) {
-      hojas.push({
-        bloque,
-        esInicio: i === 0,
-        totalBloque: filasBloque.filter((f) => f.h).length,
-        filas: filasBloque.slice(i, i + FILAS_POR_HOJA),
-      });
-    }
-  });
-
+  /* Impresión: los bloques seguidos, sin forzar saltos. Cada bloque es su
+     propia tabla y las tablas se parten por filas cuando la página se
+     llena: la cabecera de la tabla se repite con `table-header-group` y
+     ninguna fila se corta a mitad. Los bloques así van uno debajo del
+     otro rellenando la hoja, sin huecos. */
   return (
     <div className="impresion impresion--print">
       {portada}
-      {hojas.map((hoja, i) => (
-        <section key={`${hoja.bloque}-${i}`} className="impresion__hoja">
-          {hoja.esInicio && (
+      {BLOQUES.map((bloque) => {
+        const filas: Fila[] = hermanos
+          .map((h, i) => ({ h, n: i + 1 }))
+          .filter(({ h }) => h.bloque === bloque);
+        const total = filas.length;
+        if (bloque === "SUPLENTES") {
+          for (let k = 0; k < blancos; k++) {
+            filas.push({ h: null, n: ultimo + k + 1 });
+          }
+        }
+        return (
+          <section key={bloque} className="impresion__bloque">
             <h2>
-              {ETIQUETA_BLOQUE[hoja.bloque]} <span>({hoja.totalBloque})</span>
+              {ETIQUETA_BLOQUE[bloque]} <span>({total})</span>
             </h2>
-          )}
-          <table>
-            <thead>
-              <tr>
-                {cabecera.map((c) => (
-                  <th key={c}>{c}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {hoja.filas.map(({ h, n }, k) => (
-                <tr key={k}>
-                  <td className="num">{n}</td>
-                  {h ? (
-                    <>
-                      <td>{h.nombre}</td>
-                      {valores(h).map((v, j) => (
-                        <td key={j} className="num">
-                          {v}
-                        </td>
-                      ))}
-                    </>
-                  ) : (
-                    cabecera.slice(1).map((c) => (
-                      <td key={c}>&nbsp;</td>
-                    ))
-                  )}
+            <table>
+              <thead>
+                <tr>
+                  {cabecera.map((c) => (
+                    <th key={c}>{c}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      ))}
+              </thead>
+              <tbody>
+                {filas.map(({ h, n }, k) => (
+                  <tr key={k}>
+                    <td className="num">{n}</td>
+                    {h ? (
+                      <>
+                        <td>{h.nombre}</td>
+                        {valores(h).map((v, j) => (
+                          <td key={j} className="num">
+                            {v}
+                          </td>
+                        ))}
+                      </>
+                    ) : (
+                      cabecera.slice(1).map((c) => (
+                        <td key={c}>&nbsp;</td>
+                      ))
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        );
+      })}
     </div>
   );
 }
