@@ -1,0 +1,129 @@
+# Stack de PRUEBA para la rama prueba-openship. Pegar tal cual en el gestor de
+# Docker del NAS (carpeta nueva) y rellenar los cuatro <<< >>>.
+#
+# NO toca producción: usa el volumen datos_openship (opuesto al "datos" de
+# prod), imágenes con tag :prueba-openship, puerto 8088 y sin container_name
+# (para no chocar con braceros-db/-api/braceros). Trae Gemini activado, que es
+# justo lo que se valida aquí.
+#
+# Actualización automática: cuando haces push a prueba-openship, GitHub
+# construye y publica :prueba-openship, y el watchtower de ESTE stack la
+# aplica en menos de 5 minutos. Los cambios del propio YAML y del GEMINI_API_KEY
+# se aplican rehaciendo "docker compose up -d" en el NAS.
+#
+# Ojo: al llevar dentro la contraseña de la base y el token de GitHub, este
+# fichero no se sube a GitHub. Los valores van solo en el NAS.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: braceros
+      POSTGRES_USER: braceros
+      # <<< 1. INVÉNTATE UNA CONTRASEÑA LARGA (SIN CARACTERES RAROS) Y PÉGALA
+      #    EN LOS DOS SITIOS: aquí y en DATABASE_URL de abajo. Solo se usa la
+      #    primera vez, cuando se crea el volumen datos_openship. >>>
+      POSTGRES_PASSWORD: <<< 1. CLAVE_DE_LA_DB >>>
+      TZ: Europe/Madrid
+
+    volumes:
+      # Volumen DE PRUEBA: separado del "datos" real de producción.
+      - datos_openship:/var/lib/postgresql/data
+
+    # Sin "ports": la base no se asoma a la red del NAS.
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U braceros -d braceros"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  api:
+    image: ghcr.io/adiezdev/braceros-app-api:prueba-openship
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      # <<< la MISMA contraseña que en <1>, entre los dos puntos y la arroba >>>
+      DATABASE_URL: postgres://braceros:<<< 1. CLAVE_DE_LA_DB >>>@postgres:5432/braceros
+      # <<< 2. Clave de Google Gemini para "Leer de la foto" (el objetivo de
+      #    esta prueba). Se saca gratis en aistudio.google.com > Get API key. >>>
+      GEMINI_API_KEY:
+      GEMINI_MODELO: gemini-3.5-flash-lite
+      TZ: Europe/Madrid
+
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/salud').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  braceros:
+    image: ghcr.io/adiezdev/braceros-app:prueba-openship
+    restart: unless-stopped
+
+    depends_on:
+      - api
+
+    ports:
+      # izquierda = puerto del NAS, derecha = dentro del contenedor.
+      # 8088 para no chocar con prod, que ocupa el 8087.
+      - "8088:80"
+
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    restart: unless-stopped
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    environment:
+      REPO_USER: adiezdev
+      # <<< 3. TU TOKEN DE GITHUB con read:packages (el mismo del docker login
+      #    ghcr.io). >>>
+      REPO_PASS: <<< 3. PAT_GH_read_packages >>>
+      WATCHTOWER_POLL_INTERVAL: 300
+      # Solo toca los contenedores con la etiqueta de arriba. Postgres NO la
+      # tiene a propósito: una base de datos no se actualiza sola.
+      WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_CLEANUP: "true"
+      TZ: Europe/Madrid
+
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+volumes:
+  datos_openship:

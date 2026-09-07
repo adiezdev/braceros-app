@@ -1,10 +1,12 @@
 name: Publicar imágenes
 
-# Se dispara con cada push a main, y también a mano desde la pestaña Actions
-# de GitHub (botón "Run workflow"), por si quieres reconstruir sin tocar código.
+# Se dispara con cada push a main o a prueba-openship, y también a mano desde
+# la pestaña Actions de GitHub (botón "Run workflow"), por si quieres
+# reconstruir sin tocar código. En la rama de prueba se publica el tag
+# ":prueba-openship" para el stack de validación; en main, ":latest" para prod.
 on:
   push:
-    branches: [main]
+    branches: [main, prueba-openship]
   workflow_dispatch:
 
 jobs:
@@ -56,10 +58,11 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ steps.img.outputs.nombre }}
-          # :latest es la que sigue el NAS. La del hash del commit queda de
-          # histórico, para poder volver atrás si algo se rompe.
+          # :latest solo desde main (lo que sigue prod, el stack de prueba usa
+          # ":prueba-openship"). La del hash del commit queda de histórico.
           tags: |
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
             type=sha,format=short
 
       - name: Construir y subir
