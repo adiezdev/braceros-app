@@ -17,6 +17,7 @@ import {
 import type { Cuota, Estado, Hermano, Marca } from "../types";
 import {
   crearHermano, esAnio, esBloque, normalizarCuota, normalizarMarca,
+  numerosPorBloque,
 } from "./modelo";
 
 type Fila = (string | number)[];
@@ -32,14 +33,15 @@ function buscarCabecera(filas: Fila[]): number {
   );
 }
 
-/** Índice de filas por número de puesto, para cruzar las tres hojas. */
+/** Índice de filas por bloque|número, para cruzar las tres hojas. */
 function indexarPorNumero(filas: Fila[], desde: number): Map<string, Fila> {
   const m = new Map<string, Fila>();
   if (desde < 0) return m;
   for (let r = desde + 1; r < filas.length; r += 1) {
     const num = String(filas[r]?.[0] ?? "").trim();
     const nom = String(filas[r]?.[1] ?? "").trim();
-    if (num && nom) m.set(num, filas[r]);
+    const bloque = String(filas[r]?.[2] ?? "").trim().toUpperCase();
+    if (num && nom) m.set(`${bloque}|${num}`, filas[r]);
   }
   return m;
 }
@@ -108,7 +110,7 @@ export async function leerLibro(datos: Uint8Array): Promise<Estado> {
     const b = String(f?.[2] ?? "").trim().toUpperCase();
 
     const cuotas: Record<number, Cuota> = {};
-    const fc = porNumC.get(num);
+    const fc = porNumC.get(`${b}|${num}`) ?? porNumC.get(num);
     if (fc) {
       colCuota.forEach((c, anio) => {
         const v = normalizarCuota(fc[c]);
@@ -117,7 +119,7 @@ export async function leerLibro(datos: Uint8Array): Promise<Estado> {
     }
 
     const asis: Record<number, { exc: Marca; sm: Marca }> = {};
-    const fa = porNumA.get(num);
+    const fa = porNumA.get(`${b}|${num}`) ?? porNumA.get(num);
     if (fa) {
       colAsis.forEach((c, anio) => {
         const exc = normalizarMarca(fa[c]);
@@ -170,6 +172,7 @@ function escribirLibro(
 ): XLSXTipos.WorkBook {
   const { hermanos, aniosCuotas, aniosAsis, cupo, cuota } = est;
   const n = hermanos.length;
+  const numeros = numerosPorBloque(hermanos);
   const col = (i: number) => XLSX.utils.encode_col(i);
 
   /* --- Hermanos --------------------------------------------------- */
@@ -177,7 +180,7 @@ function escribirLibro(
     [`${ENTIDAD} — Listado de hermanos`],
     ["Esta hoja es la lista buena: el puesto lo da el orden de las filas."],
     ["Nº", "Nombre completo", "Bloque", "Teléfono", "Observaciones"],
-    ...hermanos.map((h, i) => [i + 1, h.nombre, h.bloque, h.telefono, h.notas]),
+    ...hermanos.map((h, i) => [numeros[i], h.nombre, h.bloque, h.telefono, h.notas]),
   ]);
   wsH["!cols"] = [{ wch: 6 }, { wch: 36 }, { wch: 13 }, { wch: 14 }, { wch: 40 }];
   wsH["!freeze"] = { xSplit: "0", ySplit: "3" };
@@ -190,7 +193,7 @@ function escribirLibro(
     ["Nº", "Nombre completo", "Bloque", ...aniosCuotas.map(String),
       "Años pagados", "Pagado (€)", "Pendiente (€)"],
     ...hermanos.map((h, i) => [
-      i + 1, h.nombre, h.bloque,
+      numeros[i], h.nombre, h.bloque,
       ...aniosCuotas.map((a) => h.cuotas?.[a] ?? ""),
       "", "", "",
     ]),
@@ -233,7 +236,7 @@ function escribirLibro(
     filaAnios,
     cabA,
     ...hermanos.map((h, i) => {
-      const f: Fila = [i + 1, h.nombre, h.bloque];
+      const f: Fila = [numeros[i], h.nombre, h.bloque];
       aniosAsis.forEach((a) => {
         f.push(h.asis?.[a]?.exc ?? "", h.asis?.[a]?.sm ?? "");
       });

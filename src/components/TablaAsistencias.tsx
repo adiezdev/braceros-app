@@ -1,7 +1,7 @@
 import { Fragment, useMemo } from "react";
 
 import { ETIQUETA_BLOQUE, PROCESIONES } from "../constants";
-import { siguienteMarca } from "../lib/modelo";
+import { numerosPorBloque, siguienteMarca } from "../lib/modelo";
 import type { ClaveProcesion, Estado, Marca } from "../types";
 import { Celda } from "./Celda";
 import { LineaCupo } from "./LineaCupo";
@@ -40,6 +40,7 @@ export function TablaAsistencias({ est, setEst, filtro }: Props) {
 
   const columnas = 3 + aniosAsis.length * 2 + 1;
   const conRaya = !filtro.trim();
+  const numeros = useMemo(() => numerosPorBloque(hermanos), [hermanos]);
 
   return (
     <div className="tabla-asistencias">
@@ -84,7 +85,7 @@ export function TablaAsistencias({ est, setEst, filtro }: Props) {
                 return (
                   <Fragment key={h.id}>
                     <tr>
-                      <td className="num">{i + 1}</td>
+                      <td className="num">{numeros[i]}</td>
                       <td className="nombre">{h.nombre || <em>sin nombre</em>}</td>
                       <td className={`bloque bloque--${h.bloque.toLowerCase()}`}>
                         {ETIQUETA_BLOQUE[h.bloque]}
@@ -103,7 +104,7 @@ export function TablaAsistencias({ est, setEst, filtro }: Props) {
                       </td>
                     </tr>
                     {conRaya && i + 1 === cupo && (
-                      <LineaCupo cupo={cupo} columnas={columnas} />
+                      <LineaCupo numero={numeros[cupo - 1] ?? 0} columnas={columnas} />
                     )}
                   </Fragment>
                 );

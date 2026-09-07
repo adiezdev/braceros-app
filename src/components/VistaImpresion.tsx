@@ -1,5 +1,6 @@
 import { BLOQUES, ENTIDAD, ETIQUETA_BLOQUE, PROCESIONES } from "../constants";
 import escudo from "../data/escudosm.png";
+import { numerosPorBloque } from "../lib/modelo";
 import type { CfgImpresion, Estado, Hermano } from "../types";
 
 interface Fila {
@@ -14,9 +15,13 @@ interface Props {
   paraImpresion?: boolean;
 }
 
+import { useMemo } from "react";
+
 export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
   const { hermanos, cuota } = est;
   const { tipo, anioAnterior, aniosNuevos, blancos } = cfg;
+
+  const numeros = useMemo(() => numerosPorBloque(hermanos), [hermanos]);
 
   const cabecera =
     tipo === "asistencias"
@@ -54,8 +59,6 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
       ? `años ${aniosNuevos.join(", ")}`
       : `año ${aniosNuevos[0]}`;
 
-  const ultimo = hermanos.length;
-
   const portada = (
     <section className="impresion__portada">
       <img className="impresion__escudo" src={escudo} alt="Escudo de la agrupación" />
@@ -75,7 +78,7 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
         {portada}
         {BLOQUES.map((bloque) => {
           const filas = hermanos
-            .map((h, i) => ({ h, n: i + 1 }))
+            .map((h, i) => ({ h, n: numeros[i] }))
             .filter(({ h }) => h.bloque === bloque);
           return (
             <section key={bloque} className="impresion__bloque">
@@ -121,12 +124,12 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
       {portada}
       {BLOQUES.map((bloque) => {
         const filas: Fila[] = hermanos
-          .map((h, i) => ({ h, n: i + 1 }))
+          .map((h, i) => ({ h, n: numeros[i] }))
           .filter(({ h }) => h.bloque === bloque);
         const total = filas.length;
         if (bloque === "SUPLENTES") {
           for (let k = 0; k < blancos; k++) {
-            filas.push({ h: null, n: ultimo + k + 1 });
+            filas.push({ h: null, n: numeros.length + k + 1 });
           }
         }
         return (

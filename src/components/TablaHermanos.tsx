@@ -2,7 +2,7 @@ import { ChevronDown, ChevronUp, CornerDownRight, Trash2 } from "lucide-react";
 import { Fragment, useMemo } from "react";
 
 import { BLOQUES, ETIQUETA_BLOQUE } from "../constants";
-import { crearHermano, esBloque } from "../lib/modelo";
+import { crearHermano, esBloque, numerosPorBloque } from "../lib/modelo";
 import type { Estado, Hermano } from "../types";
 import { LineaCupo } from "./LineaCupo";
 
@@ -53,6 +53,8 @@ export function TablaHermanos({ est, setEst, filtro }: Props) {
 
   const conRaya = !filtro.trim();
 
+  const numeros = useMemo(() => numerosPorBloque(hermanos), [hermanos]);
+
   return (
     <table className="rejilla">
       <thead>
@@ -69,7 +71,7 @@ export function TablaHermanos({ est, setEst, filtro }: Props) {
         {visibles.map(({ h, i }) => (
           <Fragment key={h.id}>
             <tr>
-              <td className="num">{i + 1}</td>
+              <td className="num">{numeros[i]}</td>
               <td>
                 <input
                   className="txt"
@@ -140,7 +142,7 @@ export function TablaHermanos({ est, setEst, filtro }: Props) {
               </td>
             </tr>
             {conRaya && i + 1 === cupo && (
-              <LineaCupo cupo={cupo} columnas={COLUMNAS} />
+              <LineaCupo numero={numeros[cupo - 1] ?? 0} columnas={COLUMNAS} />
             )}
           </Fragment>
         ))}

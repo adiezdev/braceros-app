@@ -126,6 +126,28 @@ export function contarBloque(hermanos: Hermano[], bloque: Bloque): number {
   return hermanos.filter((h) => h.bloque === bloque).length;
 }
 
+/**
+ * Nº impreso de cada hermano, con numeración independiente por bloque:
+ * Honorarios 1..N, titulares+suplentes juntos 1..M (el primer titular es 1,
+ * el último suplente es M). El array devuelto tiene la misma longitud y orden
+ * que `hermanos`.
+ */
+export function numerosPorBloque(hermanos: Hermano[]): number[] {
+  const numeros: number[] = [];
+  let honorarios = 0;
+  let resto = 0;
+  for (const h of hermanos) {
+    if (h.bloque === "HONORARIOS") {
+      honorarios += 1;
+      numeros.push(honorarios);
+    } else {
+      resto += 1;
+      numeros.push(resto);
+    }
+  }
+  return numeros;
+}
+
 /** Honorarios + titulares: los que salen en la procesión. */
 export function contarProcesionan(hermanos: Hermano[]): number {
   return hermanos.filter((h) => h.bloque !== "SUPLENTES").length;

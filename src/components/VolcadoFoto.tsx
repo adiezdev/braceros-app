@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState } from "react";
 import { Camera, Check, X } from "lucide-react";
 
-import { PROCESIONES } from "../constants";
+import { PROCESIONES, ETIQUETA_BLOQUE } from "../constants";
 import { leerFotos, type Alineable } from "../lib/foto";
-import { siguienteCuota, siguienteMarca } from "../lib/modelo";
+import { numerosPorBloque, siguienteCuota, siguienteMarca } from "../lib/modelo";
 import type {
+  Bloque,
   CfgImpresion,
   ClaveProcesion,
   Cuota,
@@ -34,12 +35,16 @@ function columnasMarca(cfg: CfgImpresion): { anio: number; procesion: ClaveProce
   ];
 }
 
+/** Secciones fotografiables de la hoja. */
+type Seccion = Bloque;
+
 const nombreProcesion = (c: ClaveProcesion) =>
   PROCESIONES.find((p) => p.clave === c)?.corto ?? c;
 
 export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
   const columnas = useMemo(() => columnasMarca(cfg), [cfg]);
   const [modo, setModo] = useState<Modo>("asistencia");
+  const [seccion, setSeccion] = useState<Seccion>("HONORARIOS");
   const [procesion, setProcesion] = useState<ClaveProcesion>("exc");
   const [anio, setAnio] = useState(columnas[0]?.anio ?? 0);
   const [leyendo, setLeyendo] = useState(false);
@@ -55,10 +60,12 @@ export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
     (c) => `${c.anio}_${c.procesion}` === seleccion
   );
 
-  const lista: Alineable[] = useMemo(
-    () => est.hermanos.map((h, i) => ({ id: h.id, n: i + 1, nombre: h.nombre })),
-    [est.hermanos]
-  );
+  const lista: Alineable[] = useMemo(() => {
+    const numeros = numerosPorBloque(est.hermanos);
+    return est.hermanos
+      .map((h, i) => ({ id: h.id, n: numeros[i], nombre: h.nombre }))
+      .filter((_, i) => est.hermanos[i].bloque === seccion);
+  }, [est.hermanos, seccion]);
 
   const alElegirFotos = async (files: FileList | null | undefined) => {
     const archivos = Array.from(files ?? []);
@@ -126,6 +133,12 @@ export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
     else setAnio(columnas[0]?.anio ?? 0);
   };
 
+  const cambioSeccion = (s: Seccion) => {
+    setSeccion(s);
+    setAcumulado([]);
+    setErrores([]);
+  };
+
   return (
     <div className="volcado">
       <div className="volcado__panel">
@@ -155,11 +168,21 @@ export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
 
       <p className="volcado__ayuda">
         {esCuotas
-          ? "Elige el año de las cuotas, selecciona varias fotos a la vez (una por página) y la IA lee el estado S/N de cada cuota. Revisa las dudosas antes de guardar."
-          : "Elige a qué procesión y año corresponde la hoja, selecciona varias fotos a la vez (una por página) y la IA las lee todas. Revisa las que marque como dudosas antes de guardar."}
+          ? "Elige la sección y el año, selecciona varias fotos a la vez (una por página) y la IA lee el estado S/N de cada cuota. Revisa las dudosas antes de guardar."
+          : "Elige la sección, la procesión y el año, selecciona varias fotos a la vez (una por página) y la IA las lee todas. Revisa las que marque como dudosas antes de guardar."}
       </p>
 
       <div className="volcado__controles">
+        <label>
+          Sección
+          <select value={seccion} onChange={(e) => cambioSeccion(e.target.value as Seccion)}>
+            {(["HONORARIOS", "TITULARES", "SUPLENTES"] as Seccion[]).map((s) => (
+              <option key={s} value={s}>
+                {ETIQUETA_BLOQUE[s]}
+              </option>
+            ))}
+          </select>
+        </label>
         {!esCuotas && (
           <label>
             Procesión
