@@ -2,8 +2,8 @@ import { ChevronDown, ChevronUp, CornerDownRight, Trash2 } from "lucide-react";
 import { Fragment, useMemo } from "react";
 
 import { BLOQUES, ETIQUETA_BLOQUE } from "../constants";
-import { crearHermano, esBloque, numerosPorBloque } from "../lib/modelo";
-import type { Estado, Hermano } from "../types";
+import { crearHermano, esBloque, numerosPorBloque, reubicarEnBloque } from "../lib/modelo";
+import type { Bloque, Estado, Hermano } from "../types";
 import { LineaCupo } from "./LineaCupo";
 
 interface Props {
@@ -20,7 +20,10 @@ export function TablaHermanos({ est, setEst, filtro }: Props) {
   const cambiar = <C extends keyof Hermano>(id: string, campo: C, valor: Hermano[C]) =>
     setEst((p) => ({
       ...p,
-      hermanos: p.hermanos.map((h) => (h.id === id ? { ...h, [campo]: valor } : h)),
+      hermanos:
+        campo === "bloque"
+          ? reubicarEnBloque(p.hermanos, id, valor as Bloque)
+          : p.hermanos.map((h) => (h.id === id ? { ...h, [campo]: valor } : h)),
     }));
 
   const mover = (i: number, delta: number) =>

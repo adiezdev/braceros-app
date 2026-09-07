@@ -10,7 +10,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "node pruebas/api.mjs && esbuild pruebas/diff.ts --bundle --format=esm --platform=node --outfile=node_modules/.cache/diff.mjs --log-level=warning && node node_modules/.cache/diff.mjs",
+    "test": "node pruebas/api.mjs && esbuild pruebas/diff.ts --bundle --format=esm --platform=node --outfile=node_modules/.cache/diff.mjs --log-level=warning && node node_modules/.cache/diff.mjs && esbuild pruebas/reubicar.ts --bundle --format=esm --platform=node --outfile=node_modules/.cache/reubicar.mjs --log-level=warning && node node_modules/.cache/reubicar.mjs",
     "semilla": "esbuild pruebas/semilla.ts --bundle --format=esm --platform=node --outfile=node_modules/.cache/semilla.mjs --log-level=warning && node node_modules/.cache/semilla.mjs"
   },
   "dependencies": {

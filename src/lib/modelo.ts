@@ -152,3 +152,26 @@ export function numerosPorBloque(hermanos: Hermano[]): number[] {
 export function contarProcesionan(hermanos: Hermano[]): number {
   return hermanos.filter((h) => h.bloque !== "SUPLENTES").length;
 }
+
+/**
+ * Cambia el bloque de un hermano y lo recoloca al final de su nuevo bloque,
+ * justo antes del primer hermano del bloque siguiente (honorario → encima del
+ * primer titular; titular → antes del primer suplente; suplente → al final).
+ * Devuelve el array original si no hay nada que recolocar.
+ */
+export function reubicarEnBloque(
+  hermanos: Hermano[],
+  id: string,
+  bloque: Bloque,
+): Hermano[] {
+  const i = hermanos.findIndex((h) => h.id === id);
+  if (i === -1 || hermanos[i].bloque === bloque) return hermanos;
+  const resto = hermanos.filter((_, k) => k !== i);
+  const indice = BLOQUES.indexOf(bloque);
+  const siguiente = indice + 1 < BLOQUES.length ? BLOQUES[indice + 1] : undefined;
+  let destino = siguiente ? resto.findIndex((h) => h.bloque === siguiente) : -1;
+  if (destino === -1) destino = resto.length;
+  const l = [...resto];
+  l.splice(destino, 0, { ...hermanos[i], bloque });
+  return l;
+}
