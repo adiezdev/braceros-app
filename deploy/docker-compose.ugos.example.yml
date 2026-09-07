@@ -51,7 +51,7 @@ services:
       postgres:
         condition: service_healthy
 
-environment:
+    environment:
       # <<< la MISMA contraseña que arriba, entre los dos puntos y la arroba >>>
       DATABASE_URL: postgres://braceros:CAMBIAME@postgres:5432/braceros
       # <<< 5. (OPCIONAL) Clave de Google Gemini para "Leer de la foto".
@@ -118,6 +118,11 @@ environment:
       # Es el mismo token del "docker login" del paso 1.
       REPO_USER: tuusuario
       REPO_PASS: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+      # Sin esta fija, el socket de Docker del NAS le da a watchtower una
+      # version demasiado antigua de la API y falla. Con una version fija
+      # negocia bien.
+      DOCKER_API_VERSION: "1.41"
 
       WATCHTOWER_POLL_INTERVAL: 300
       # Solo toca los contenedores con la etiqueta de arriba. Postgres NO la
