@@ -6,6 +6,10 @@ tsconfig.tsbuildinfo
 api/dist
 api/node_modules
 
+# Compose de desarrollo: solo en tu máquina (docker compose up postgres api).
+# No sube para que OpenShip no lo confunda con el stack de despliegue.
+docker-compose.yml
+
 # Llevan la contraseña de la base y el token de GitHub. Nunca se suben.
 # Las plantillas (.example) sí, que no tienen valores de verdad.
 .env

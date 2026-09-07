@@ -57,7 +57,7 @@ antes las notas de la versión.
 | `deploy/docker-compose.yml` | Lo que se ejecuta en el NAS |
 | `deploy/.env.example` | Plantilla de la configuración del NAS |
 | `deploy/docker-compose.ugos.yml` | Alternativa sin `.env`, para pegar en el gestor web del NAS |
-| `docker-compose.yml` | Para probarlo en tu máquina, no en el NAS |
+| `docker-compose.yml` (solo local) | Para probarlo en tu máquina, no en el NAS. No se sube al repo |
 
 ---
 
@@ -318,8 +318,10 @@ docker compose down -v
 
 ## Probarlo en tu máquina antes de subirlo
 
-En la raíz del repositorio hay otro `docker-compose.yml` que construye las
-imágenes del código local en vez de bajarlas de GitHub:
+En la raíz hay otro `docker-compose.yml` que construye las imágenes del código
+local en vez de bajarlas de GitHub. Es **solo local**: está fuera de git (en
+`.gitignore`), así que tu máquina lo conserva pero no viaja al repositorio — y
+OpenShip no lo puede confundir con el stack de `deploy/`.
 
 ```bash
 docker compose up --build      # todo en http://localhost:8087
@@ -357,11 +359,20 @@ Postgres aparte (`datos_openship`) para no tocar los datos reales.
 ### Cómo desplegar la prueba
 
 1. Empuja la rama `prueba-openship` a GitHub.
-2. En OpenShip crea un proyecto desde el repo, apuntando el compose a
-   `deploy/docker-compose.yml` (el `openship.json` ya lo sugiere).
-3. Configura las variables del entorno del proyecto: `DB_PASSWORD`,
-   `GEMINI_API_KEY` (opcional) y el dominio/puerto.
-4. Despliega. OpenShip levanta `postgres` + `api` + `braceros` como stack.
+2. En OpenShip, crea el proyecto desde el repo y asegúrate de que la **Production
+   branch** sea `prueba-openship` (en `main` no hay `openship.json` y OpenShip
+   cae a detección monorepo).
+3. En el wizard, abre **Compose file**, pon `deploy/docker-compose.yml` y pulsa
+   **Scan**. Es este campo el que convierte el proyecto en un stack compose:
+   las filas deben quedar en `postgres`, `api`, `braceros` (contenedores), no
+   como apps "static" (`braceros-san-martin` / `braceros-api`).
+4. Configura las variables del entorno del proyecto: `DB_PASSWORD` (secreta),
+   `GEMINI_API_KEY` (opcional), `GEMINI_MODELO` (opcional) y `PUERTO` si quieres
+   otro distinto de 8087.
+5. Despliega. OpenShip levanta `postgres` + `api` + `braceros` como stack y el
+   front queda accesible en `http://IP_TARGET:8087` sin necesidad de dominios.
+6. Los dominios/edge requieren que OpenShip pueda instalar su enrutador en el
+   target: conéctalo como root o con sudo sin contraseña cuando toque.
 
 Cuando esté validado, el corte definitivo apuntará el stack al volumen real
 `datos` (haciendo antes copia/backup de la base) y se retirará el flujo GHCR.
