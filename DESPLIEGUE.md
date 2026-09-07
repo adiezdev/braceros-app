@@ -137,6 +137,8 @@ GHCR_TOKEN=ghp_el_token_del_paso_2
 DB_PASSWORD=la_que_acabas_de_generar
 PUERTO=8087
 INTERVALO=300
+# Volcado por foto (opcional): clave de Gemini, ver debajo.
+GEMINI_API_KEY=
 ```
 
 Se guarda con `Ctrl+O`, `Enter`, y se sale con `Ctrl+X`. Protégelo:
@@ -167,6 +169,22 @@ que empiezan por punto. Dos salidas:
 Con el segundo, el token de GitHub **no** hace falta escribirlo en ningún
 sitio: watchtower lee las credenciales del `docker login` del paso 5, montando
 el `config.json` que ese comando deja escrito.
+
+### Volcado por foto (opcional)
+
+La pestaña de Asistencias tiene un botón "Leer de la foto" que sube la hoja
+fotografiada al servidor para que la IA de Google (Gemini) reconozca la
+cuadrícula y rellene las marcas V/F/FJ. **La propia API del proyecto hace de
+proxy**: la clave de Gemini vive solo en el NAS (variable `GEMINI_API_KEY`),
+nunca en los navegadores.
+
+- Se obtiene gratis en `aistudio.google.com` > "Get API key".
+- La pongas o no, el resto de la app funciona igual: si la clave falta, ese
+  botón avisa y no deja leer.
+- **Privacidad**: al volcarlo, las fotos (que pueden mostrar nombres y
+  teléfonos de los hermanos) **salen a Google**. No lo actives si eso es un
+  problema. El modelo se puede cambiar con la variable `GEMINI_MODELO`
+  (por defecto `gemini-3.5-flash-lite`, el más barato).
 
 ## Paso 5 — Arrancar
 
@@ -318,3 +336,32 @@ pnpm dev                       # http://localhost:5173
 ```
 
 Vite ya está configurado para mandar `/api` al puerto 3000.
+
+---
+
+## Rama de prueba: desplegar en OpenShip
+
+La rama `prueba-openship` adapta el proyecto para construirlo y desplegarlo
+con **OpenShip** (la plataforma self-hosted tipo Vercel) en lugar del flujo
+GHCR + watchtower descrito arriba. Esto es una **prueba**: usa un volumen de
+Postgres aparte (`datos_openship`) para no tocar los datos reales.
+
+### Qué cambia frente al flujo GHCR
+
+- `deploy/docker-compose.yml` usa `build:` (contextos `..` y `../api`)
+  en vez de imágenes de GHCR: OpenShip construye desde el código.
+- Se elimina `watchtower`: OpenShip hace el autodeploy en cada push.
+- Se añade `openship.json` con `composePath: deploy/docker-compose.yml` para
+  que OpenShip lea el stack automáticamente.
+
+### Cómo desplegar la prueba
+
+1. Empuja la rama `prueba-openship` a GitHub.
+2. En OpenShip crea un proyecto desde el repo, apuntando el compose a
+   `deploy/docker-compose.yml` (el `openship.json` ya lo sugiere).
+3. Configura las variables del entorno del proyecto: `DB_PASSWORD`,
+   `GEMINI_API_KEY` (opcional) y el dominio/puerto.
+4. Despliega. OpenShip levanta `postgres` + `api` + `braceros` como stack.
+
+Cuando esté validado, el corte definitivo apuntará el stack al volumen real
+`datos` (haciendo antes copia/backup de la base) y se retirará el flujo GHCR.

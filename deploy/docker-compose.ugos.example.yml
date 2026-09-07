@@ -51,9 +51,15 @@ services:
       postgres:
         condition: service_healthy
 
-    environment:
-      # <<< la MISMA contraseÃ±a que arriba, entre los dos puntos y la arroba >>>
+environment:
+      # <<< la MISMA contraseña que arriba, entre los dos puntos y la arroba >>>
       DATABASE_URL: postgres://braceros:CAMBIAME@postgres:5432/braceros
+      # <<< 5. (OPCIONAL) Clave de Google Gemini para "Leer de la foto".
+      #    Déjala vacía si no la vas a usar; el resto de la app sigue igual.
+      #    Se saca gratis en aistudio.google.com > Get API key.
+      #    Aviso: sube las fotos a Google. >>>
+      GEMINI_API_KEY:
+      GEMINI_MODELO: gemini-3.5-flash-lite
       TZ: Europe/Madrid
 
     labels:

@@ -2,6 +2,7 @@ import Fastify from "fastify";
 
 import { enTransaccion, esperarBase, migrar, pool } from "./db.js";
 import { leerEstado, versionActual } from "./estado.js";
+import { transcribir, type TipoFoto } from "./gemini.js";
 import { aplicar, ErrorPeticion, resumir } from "./operaciones.js";
 import type { Operacion } from "./tipos.js";
 
@@ -46,6 +47,17 @@ app.post<{ Body: { ops?: Operacion[] } }>("/api/cambios", async (req, reply) => 
 
   reply.code(200);
   return { version };
+});
+
+/**
+ * Volcado por foto: el navegador sube una imagen en base64 y el servidor la
+ * manda a Gemini para leer las marcas de la tabla. La API key de Gemini vive
+ * aquí (variable de entorno), nunca en el navegador. La imagen sale a Google.
+ */
+app.post<{ Body: { imagenBase64?: string; columna?: number; tipo?: TipoFoto } }>("/api/foto", async (req) => {
+  const tipo: TipoFoto = req.body?.tipo === "cuotas" ? "cuotas" : "asistencia";
+  const filas = await transcribir(req.body?.imagenBase64 ?? "", req.body?.columna ?? 0, tipo);
+  return { filas };
 });
 
 app.setErrorHandler((err, _req, reply) => {

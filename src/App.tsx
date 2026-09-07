@@ -1,4 +1,4 @@
-import { Download, Plus, RotateCcw, Search, Upload, X } from "lucide-react";
+import { Camera, Download, Plus, RotateCcw, Search, Upload, X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { Aviso as AvisoUI } from "./components/Aviso";
@@ -7,6 +7,7 @@ import { Resumen } from "./components/Resumen";
 import { TablaAsistencias } from "./components/TablaAsistencias";
 import { TablaCuotas } from "./components/TablaCuotas";
 import { TablaHermanos } from "./components/TablaHermanos";
+import { VolcadoFoto } from "./components/VolcadoFoto";
 import { ANIO_BASE, ENTIDAD } from "./constants";
 import { descargarLibro, leerLibro } from "./lib/libro";
 import { crearHermano, estadoInicial } from "./lib/modelo";
@@ -34,6 +35,7 @@ export default function App() {
   const [pestana, setPestana] = useState<Pestana>("hermanos");
   const [filtro, setFiltro] = useState("");
   const [aviso, setAviso] = useState<Aviso | null>(null);
+  const [volcadoFoto, setVolcadoFoto] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [cfgImpr, setCfgImpr] = useState<CfgImpresion>({
@@ -186,6 +188,14 @@ export default function App() {
   return (
     <>
       <div className="app">
+        {volcadoFoto && (
+          <VolcadoFoto
+            est={est}
+            cfg={cfgImpr}
+            setEst={setEst}
+            onCerrar={() => setVolcadoFoto(false)}
+          />
+        )}
         <header className="cabecera">
           <div className="cabecera__marca">
             <h1>{ENTIDAD}</h1>
@@ -332,6 +342,16 @@ export default function App() {
             cuando quieras una copia fuera de aquí.
           </span>
         </footer>
+
+        {pestana !== "imprimir" && (
+          <button
+            className="volcado-fab"
+            onClick={() => setVolcadoFoto(true)}
+            title="Leer asistencias o cuotas de la foto"
+          >
+            <Camera size={24} />
+          </button>
+        )}
       </div>
     </>
   );

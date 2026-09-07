@@ -23,6 +23,17 @@ export interface Hermano {
   asis: Record<number, Asistencia>;
 }
 
+/** Una fila leída de la foto, ya alineada con su hermano. */
+export interface FilaLeida {
+  id: string;
+  /** Puesto (1..N) en la lista, el que sale impreso. */
+  n: number;
+  nombre: string;
+  marca: Marca | Cuota;
+  /** 0..1; por debajo de ~0.6 conviene que el usuario la repare. */
+  confianza: number;
+}
+
 export interface Estado {
   /** Puestos que procesionan: honorarios + titulares. */
   cupo: number;

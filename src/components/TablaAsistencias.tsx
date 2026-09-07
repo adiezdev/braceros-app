@@ -42,70 +42,74 @@ export function TablaAsistencias({ est, setEst, filtro }: Props) {
   const conRaya = !filtro.trim();
 
   return (
-    <table className="rejilla">
-      <thead>
-        <tr>
-          <th className="th-num" rowSpan={2}>
-            Nº
-          </th>
-          <th rowSpan={2}>Nombre completo</th>
-          <th className="th-bloque" rowSpan={2}>
-            Bloque
-          </th>
-          {aniosAsis.map((a) => (
-            <th key={a} colSpan={2} className="th-anio">
-              {a}
-            </th>
-          ))}
-          <th className="th-marca" rowSpan={2}>
-            Vino
-          </th>
-        </tr>
-        <tr>
-          {aniosAsis.flatMap((a) =>
-            PROCESIONES.map((p) => (
-              <th key={`${a}-${p.clave}`} className="th-marca">
-                {p.corto}
-              </th>
-            ))
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {visibles.map(({ h, i }) => {
-          const marcas = aniosAsis
-            .flatMap((a) => [h.asis?.[a]?.exc ?? "", h.asis?.[a]?.sm ?? ""])
-            .filter(Boolean);
-          const vino = marcas.filter((m) => m === "V").length;
-          const pct = marcas.length ? Math.round((vino / marcas.length) * 100) : null;
-          return (
-            <Fragment key={h.id}>
+    <div className="tabla-asistencias">
+      <table className="rejilla">
+            <thead>
               <tr>
-                <td className="num">{i + 1}</td>
-                <td className="nombre">{h.nombre || <em>sin nombre</em>}</td>
-                <td className={`bloque bloque--${h.bloque.toLowerCase()}`}>
-                  {ETIQUETA_BLOQUE[h.bloque]}
-                </td>
+                <th className="th-num" rowSpan={2}>
+                  Nº
+                </th>
+                <th rowSpan={2}>Nombre completo</th>
+                <th className="th-bloque" rowSpan={2}>
+                  Bloque
+                </th>
+                {aniosAsis.map((a) => (
+                  <th key={a} colSpan={2} className="th-anio">
+                    {a}
+                  </th>
+                ))}
+                <th className="th-marca" rowSpan={2}>
+                  Vino
+                </th>
+              </tr>
+              <tr>
                 {aniosAsis.flatMap((a) =>
                   PROCESIONES.map((p) => (
-                    <Celda
-                      key={`${a}-${p.clave}`}
-                      valor={h.asis?.[a]?.[p.clave]}
-                      onClick={() => alternar(h.id, a, p.clave)}
-                    />
+                    <th key={`${a}-${p.clave}`} className="th-marca">
+                      {p.corto}
+                    </th>
                   ))
                 )}
-                <td className={`cifra ${pct !== null && pct < 50 ? "cifra--debe" : ""}`}>
-                  {pct === null ? "—" : `${pct}%`}
-                </td>
               </tr>
-              {conRaya && i + 1 === cupo && (
-                <LineaCupo cupo={cupo} columnas={columnas} />
-              )}
-            </Fragment>
-          );
-        })}
-      </tbody>
-    </table>
+            </thead>
+            <tbody>
+              {visibles.map(({ h, i }) => {
+                const marcas = aniosAsis
+                  .flatMap((a) => [h.asis?.[a]?.exc ?? "", h.asis?.[a]?.sm ?? ""])
+                  .filter(Boolean);
+                const vino = marcas.filter((m) => m === "V").length;
+                const pct = marcas.length
+                  ? Math.round((vino / marcas.length) * 100)
+                  : null;
+                return (
+                  <Fragment key={h.id}>
+                    <tr>
+                      <td className="num">{i + 1}</td>
+                      <td className="nombre">{h.nombre || <em>sin nombre</em>}</td>
+                      <td className={`bloque bloque--${h.bloque.toLowerCase()}`}>
+                        {ETIQUETA_BLOQUE[h.bloque]}
+                      </td>
+                      {aniosAsis.flatMap((a) =>
+                        PROCESIONES.map((p) => (
+                          <Celda
+                            key={`${a}-${p.clave}`}
+                            valor={h.asis?.[a]?.[p.clave]}
+                            onClick={() => alternar(h.id, a, p.clave)}
+                          />
+                        ))
+                      )}
+                      <td className={`cifra ${pct !== null && pct < 50 ? "cifra--debe" : ""}`}>
+                        {pct === null ? "—" : `${pct}%`}
+                      </td>
+                    </tr>
+                    {conRaya && i + 1 === cupo && (
+                      <LineaCupo cupo={cupo} columnas={columnas} />
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
   );
 }

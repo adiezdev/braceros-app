@@ -1,33 +1,37 @@
-# Esto va en el NAS, no se ejecuta en tu portátil.
-# Copia este fichero y el .env al NAS, y desde esa carpeta:
-#   docker compose up -d
+# ---------------------------------------------------------------------------
+# Versión para OpenShip (rama de prueba) — deploy/docker-compose.yml.
 #
-# Cuatro contenedores:
-#   postgres    la base de datos. Los datos viven en un volumen del NAS.
-#   api         Node: lee y escribe en postgres, habla JSON con el navegador
-#   braceros    nginx: sirve la app y pasa /api a la api
-#   watchtower  vigila si hay imagen nueva en GitHub y la despliega
+# A diferencia del compose de producción (que tiraba de imágenes de GHCR y
+# usaba watchtower), este construye desde el código con `build:` y prescinde
+# de watchtower: OpenShip hace el autodeploy en cada push y gestiona el
+# rollout y el TLS mediante su edge.
+#
+# Se trata de una réplica de PRUEBA: Postgres usa un volumen aparte
+# (datos_openship) para no tocar la base real de producción durante la
+# validación. Cuando se valide, se apuntará al volumen real.
+#
+# OpenShip lee este fichero como un stack multi-servicio: cada servicio es un
+# contenedor con su image/build, ports, depends_on, environment, volumes y
+# healthcheck.
+# ---------------------------------------------------------------------------
 
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: braceros-db
     restart: unless-stopped
 
     environment:
       POSTGRES_DB: braceros
       POSTGRES_USER: braceros
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?falta DB_PASSWORD en el .env}
-      # Sin esto, un reinicio con la hora cambiada descoloca los timestamps.
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-desarrollo}
       TZ: Europe/Madrid
 
     volumes:
-      # Volumen con nombre: sobrevive a que borres y recrees los contenedores.
-      # Es EL sitio donde están los datos. Lo que haya que respaldar es esto.
-      - datos:/var/lib/postgresql/data
+      # Volumen DE PRUEBA: separado del "datos" real de producción.
+      - datos_openship:/var/lib/postgresql/data
 
-    # Deliberadamente SIN "ports": la base no se asoma a la red del NAS.
-    # Solo la alcanzan los contenedores de esta misma red.
+    # Sin "ports": OpenShip lo enruta por dominio; la base no debe exponerse
+    # a la red pública.
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U braceros -d braceros"]
@@ -36,26 +40,23 @@ services:
       retries: 10
       start_period: 20s
 
-    logging:
-      driver: json-file
-      options: { max-size: "10m", max-file: "3" }
-
   api:
-    image: ghcr.io/${GHCR_USER}/${GHCR_REPO}-api:latest
-    container_name: braceros-api
+    # Contexto relativo a la carpeta de ESTE fichero (deploy/), de ahí el "..".
+    # Es lo que necesita OpenShip: los build: se resuelven contra la carpeta
+    # del compose, no contra la raíz del repo.
+    build: ../api
     restart: unless-stopped
 
     depends_on:
       postgres:
-        # Espera a que la base acepte conexiones, no solo a que arranque.
         condition: service_healthy
 
     environment:
-      DATABASE_URL: postgres://braceros:${DB_PASSWORD}@postgres:5432/braceros
+      DATABASE_URL: postgres://braceros:${DB_PASSWORD:-desarrollo}@postgres:5432/braceros
+      # Volcado por foto (IA). Vacío si no se ha configurado: la app avisa.
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODELO: ${GEMINI_MODELO:-gemini-3.5-flash-lite}
       TZ: Europe/Madrid
-
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
 
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/salud').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
@@ -64,25 +65,18 @@ services:
       retries: 3
       start_period: 20s
 
-    logging:
-      driver: json-file
-      options: { max-size: "10m", max-file: "3" }
-
   braceros:
-    image: ghcr.io/${GHCR_USER}/${GHCR_REPO}:latest
-    container_name: braceros
+    # Contexto relativo a la carpeta de ESTE fichero (deploy/): ".." es la raíz
+    # del repo, donde está el Dockerfile del frontend (nginx).
+    build: ..
     restart: unless-stopped
 
     depends_on:
       - api
 
+    # Puerto web del contenedor. OpenShip lo enruta a su dominio y termina TLS.
     ports:
-      # izquierda = puerto del NAS, derecha = puerto dentro del contenedor.
-      # El 80 y el 443 del NAS los usa UGOS para su propia interfaz.
       - "${PUERTO:-8087}:80"
-
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
 
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost/healthz"]
@@ -91,35 +85,5 @@ services:
       retries: 3
       start_period: 5s
 
-    logging:
-      driver: json-file
-      options: { max-size: "10m", max-file: "3" }
-
-  watchtower:
-    image: containrrr/watchtower:latest
-    container_name: braceros-watchtower
-    restart: unless-stopped
-
-    volumes:
-      # Le da acceso al Docker del NAS: así puede parar y arrancar los
-      # contenedores cuando llega una versión nueva.
-      - /var/run/docker.sock:/var/run/docker.sock
-
-    environment:
-      # Credenciales para leer del registro privado de GitHub.
-      REPO_USER: ${GHCR_USER}
-      REPO_PASS: ${GHCR_TOKEN:?falta GHCR_TOKEN en el .env}
-      WATCHTOWER_POLL_INTERVAL: ${INTERVALO:-300}
-      # Solo toca los contenedores con la etiqueta de arriba. Postgres NO la
-      # tiene a propósito: la base no se actualiza sola, eso se hace a mano
-      # y leyendo antes las notas de la versión.
-      WATCHTOWER_LABEL_ENABLE: "true"
-      WATCHTOWER_CLEANUP: "true"
-      TZ: Europe/Madrid
-
-    logging:
-      driver: json-file
-      options: { max-size: "10m", max-file: "3" }
-
 volumes:
-  datos:
+  datos_openship:

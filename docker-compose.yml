@@ -37,6 +37,10 @@ services:
     environment:
       DATABASE_URL: postgres://braceros:desarrollo@postgres:5432/braceros
       LOG_LEVEL: debug
+      # Para probar el volcado por foto en local. Sácala gratis en AI Studio:
+      # aistudio.google.com > "Get API key". Si no la pones, el botón de
+      # "Leer de la foto" avisará y no funcionará (sin tocar el resto).
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     ports:
       - "3000:3000" # para que `pnpm dev` pueda llegar sin pasar por nginx
 
