@@ -2,7 +2,7 @@ import { ChevronDown, ChevronUp, CornerDownRight, Trash2 } from "lucide-react";
 import { Fragment, useMemo, useRef, useState } from "react";
 
 import { BLOQUES, ETIQUETA_BLOQUE } from "../constants";
-import { crearHermano, esBloque, moverANumero, numerosPorBloque, reubicarEnBloque } from "../lib/modelo";
+import { crearHermano, corregirPorCupo, esBloque, moverANumero, numerosPorBloque, reubicarEnBloque } from "../lib/modelo";
 import type { Bloque, Estado, Hermano } from "../types";
 import { LineaCupo } from "./LineaCupo";
 
@@ -20,6 +20,7 @@ export function TablaHermanos({ est, setEst, filtro }: Props) {
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [borradorNum, setBorradorNum] = useState("");
   const [rangoNum, setRangoNum] = useState<[number, number]>([1, 0]);
+  const [pistaNum, setPistaNum] = useState("");
   const cancelarNum = useRef(false);
 
   const cambiar = <C extends keyof Hermano>(id: string, campo: C, valor: Hermano[C]) =>
@@ -37,14 +38,14 @@ export function TablaHermanos({ est, setEst, filtro }: Props) {
       if (j < 0 || j >= p.hermanos.length) return p;
       const l = [...p.hermanos];
       [l[i], l[j]] = [l[j], l[i]];
-      return { ...p, hermanos: l };
+      return { ...p, hermanos: corregirPorCupo(l, [i, j], p.cupo) };
     });
 
   const insertarDebajo = (i: number) =>
     setEst((p) => {
       const l = [...p.hermanos];
       l.splice(i + 1, 0, crearHermano({ bloque: l[i]?.bloque ?? "SUPLENTES" }));
-      return { ...p, hermanos: l };
+      return { ...p, hermanos: corregirPorCupo(l, [i + 1], p.cupo) };
     });
 
   const borrar = (id: string, nombre: string) => {
@@ -55,25 +56,32 @@ export function TablaHermanos({ est, setEst, filtro }: Props) {
   const abrirEdicionNum = (i: number) => {
     const h = hermanos[i];
     const nHon = hermanos.filter((x) => x.bloque === "HONORARIOS").length;
-    const nTit = hermanos.filter((x) => x.bloque === "TITULARES").length;
-    let rango: [number, number];
-    if (h.bloque === "HONORARIOS") rango = [1, nHon];
-    else if (h.bloque === "TITULARES") rango = [1, nTit];
-    else rango = [nTit + 1, hermanos.length];
+    const nTotal = hermanos.length - nHon;
+    const rango: [number, number] = h.bloque === "HONORARIOS" ? [1, nHon] : [1, nTotal];
+    const linea = cupo - nHon;
     setEditandoId(h.id);
     setBorradorNum(String(numeros[i]));
     setRangoNum(rango);
+    setPistaNum(
+      h.bloque === "HONORARIOS"
+        ? `Nº de honorario: entre 1 y ${nHon}`
+        : `Puesto 1..${nTotal}: hasta ${linea} titular, de ${linea + 1} en adelante suplente`,
+    );
   };
 
   const confirmarNum = (id: string) => {
-    const n = Number(borradorNum);
-    if (Number.isInteger(n) && n >= rangoNum[0] && n <= rangoNum[1]) {
-      setEst((p) => ({ ...p, hermanos: moverANumero(p.hermanos, id, n) }));
-      setEditandoId(null);
-    } else {
+    if (cancelarNum.current) {
+      cancelarNum.current = false;
       setEditandoId(null);
       setBorradorNum("");
+      return;
     }
+    const n = Number(borradorNum);
+    if (Number.isInteger(n) && n >= rangoNum[0] && n <= rangoNum[1]) {
+      setEst((p) => ({ ...p, hermanos: moverANumero(p.hermanos, id, n, p.cupo) }));
+    }
+    setEditandoId(null);
+    setBorradorNum("");
   };
 
   const visibles = useMemo(() => {
@@ -109,7 +117,7 @@ export function TablaHermanos({ est, setEst, filtro }: Props) {
                     autoFocus
                     className="num-edit"
                     value={borradorNum}
-                    title={`Entre ${rangoNum[0]} y ${rangoNum[1]}`}
+                    title={pistaNum || `Entre ${rangoNum[0]} y ${rangoNum[1]}`}
                     onChange={(e) => setBorradorNum(e.target.value)}
                     onBlur={() => confirmarNum(h.id)}
                     onKeyDown={(e) => {

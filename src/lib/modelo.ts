@@ -177,70 +177,103 @@ export function reubicarEnBloque(
 }
 
 /**
- * Mueve a un hermano dentro de su mismo bloque para que su Nº impreso pase a
- * ser `objetivo`. Rangos (los que aparecen en la tabla): honorarios 1..N,
- * titulares 1..t, suplentes (t+1)..M. Sin salir del bloque, así la lista
- * queda agrupada y la hoja impresa coherente. Devuelve el array original si
- * el objetivo no es un entero dentro del rango.
+ * Tras mover filas, asegura que el bloque (titular/suplente) cuadre con el
+ * lado del cierre del cupo: por encima de la línea → titular, por debajo →
+ * suplente. Los honorarios no se tocan. No cambia nada si la línea no cae
+ * dentro de la lista.
+ */
+export function corregirPorCupo(
+  hermanos: Hermano[],
+  indices: number[],
+  cupo: number,
+): Hermano[] {
+  if (cupo < 1 || cupo > hermanos.length) return hermanos;
+  const l = [...hermanos];
+  let cambio = false;
+  for (const k of indices) {
+    const h = l[k];
+    if (h.bloque === "TITULARES" && k >= cupo) {
+      l[k] = { ...h, bloque: "SUPLENTES" };
+      cambio = true;
+    } else if (h.bloque === "SUPLENTES" && k < cupo) {
+      l[k] = { ...h, bloque: "TITULARES" };
+      cambio = true;
+    }
+  }
+  return cambio ? l : hermanos;
+}
+
+/**
+ * Mueve a un hermano para que su Nº impreso pase a ser `objetivo`.
+ * Honorarios: 1..N, siempre dentro de su tramo. Titulares y suplentes
+ * comparten la numeración continua 1..M de la hoja: el puesto físico lo
+ * marca el objetivo y el bloque se fija según el cierre del cupo (un número
+ * de titulares convierte en titular, uno de suplentes en suplente).
+ * Devuelve el array original si el objetivo no es válido.
  */
 export function moverANumero(
   hermanos: Hermano[],
   id: string,
   objetivo: number,
+  cupo: number,
 ): Hermano[] {
   const i = hermanos.findIndex((h) => h.id === id);
   if (i === -1 || !Number.isInteger(objetivo)) return hermanos;
   const h = hermanos[i];
 
   const nHon = contarBloque(hermanos, "HONORARIOS");
-  const nTit = contarBloque(hermanos, "TITULARES");
   const nTotal = hermanos.length - nHon;
-  let p: number;
-  if (h.bloque === "HONORARIOS") {
-    if (objetivo < 1 || objetivo > nHon) return hermanos;
-    p = objetivo;
-  } else if (h.bloque === "TITULARES") {
-    if (objetivo < 1 || objetivo > nTit) return hermanos;
-    p = objetivo;
-  } else {
-    if (objetivo < nTit + 1 || objetivo > nTotal) return hermanos;
-    p = objetivo - nTit;
-  }
-  if (numerosPorBloque(hermanos)[i] === objetivo) return hermanos;
+  const esHonorario = h.bloque === "HONORARIOS";
+  const enRango = esHonorario
+    ? objetivo >= 1 && objetivo <= nHon
+    : objetivo >= 1 && objetivo <= nTotal;
+  if (!enRango) return hermanos;
 
-  // Recoloca al hermano dentro del tramo de su bloque: quedan exactamente
-  // p-1 hermanos del mismo bloque delante, y los demás conservan su orden.
   const sinEl = hermanos.filter((_, k) => k !== i);
-  const primer = (cumple: (x: Hermano) => boolean): number => {
-    const k = sinEl.findIndex(cumple);
-    return k === -1 ? sinEl.length : k;
-  };
-  let inicio: number;
-  let fin: number;
-  if (h.bloque === "HONORARIOS") {
-    inicio = 0;
-    fin = primer((x) => x.bloque !== "HONORARIOS");
-  } else if (h.bloque === "TITULARES") {
-    inicio = primer((x) => x.bloque === "TITULARES");
-    const primeroSup = primer((x) => x.bloque === "SUPLENTES");
-    if (inicio === sinEl.length) inicio = primeroSup;
-    fin = primeroSup;
-  } else {
-    inicio = primer((x) => x.bloque === "SUPLENTES");
-    fin = sinEl.length;
+
+  if (esHonorario) {
+    // Dentro del tramo de honorarios: quedan objetivo-1 delante.
+    const fin = sinEl.findIndex((x) => x.bloque !== "HONORARIOS");
+    const limite = fin === -1 ? sinEl.length : fin;
+    let destino = limite;
+    let vistos = 0;
+    for (let k = 0; k < limite; k++) {
+      if (sinEl[k].bloque === "HONORARIOS") {
+        vistos += 1;
+        if (vistos === objetivo) {
+          destino = k;
+          break;
+        }
+      }
+    }
+    if (destino === limite && numerosPorBloque(hermanos)[i] === objetivo) {
+      return hermanos;
+    }
+    const l = [...sinEl];
+    l.splice(destino, 0, h);
+    return l;
   }
-  let insertarEn = fin;
+
+  // El número es la posición dentro del tramo titular+suplente (nº impreso).
+  // La línea del cupo cae tras el nº (cupo - nHon): por encima titular.
+  const linea = cupo - nHon;
+  const bloqueNuevo: Bloque = objetivo <= linea ? "TITULARES" : "SUPLENTES";
+  if (numerosPorBloque(hermanos)[i] === objetivo && h.bloque === bloqueNuevo) {
+    return hermanos;
+  }
+
+  let destino = sinEl.length;
   let vistos = 0;
-  for (let k = inicio; k < fin; k++) {
-    if (sinEl[k].bloque === h.bloque) {
+  for (let k = 0; k < sinEl.length; k++) {
+    if (sinEl[k].bloque !== "HONORARIOS") {
       vistos += 1;
-      if (vistos === p) {
-        insertarEn = k;
+      if (vistos === objetivo) {
+        destino = k;
         break;
       }
     }
   }
   const l = [...sinEl];
-  l.splice(insertarEn, 0, h);
+  l.splice(destino, 0, { ...h, bloque: bloqueNuevo });
   return l;
 }
