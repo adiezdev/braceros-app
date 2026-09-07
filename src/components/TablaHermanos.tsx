@@ -1,8 +1,8 @@
 import { ChevronDown, ChevronUp, CornerDownRight, Trash2 } from "lucide-react";
-import { Fragment, useMemo } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 
 import { BLOQUES, ETIQUETA_BLOQUE } from "../constants";
-import { crearHermano, esBloque, numerosPorBloque, reubicarEnBloque } from "../lib/modelo";
+import { crearHermano, esBloque, moverANumero, numerosPorBloque, reubicarEnBloque } from "../lib/modelo";
 import type { Bloque, Estado, Hermano } from "../types";
 import { LineaCupo } from "./LineaCupo";
 
@@ -16,6 +16,11 @@ const COLUMNAS = 6;
 
 export function TablaHermanos({ est, setEst, filtro }: Props) {
   const { hermanos, cupo } = est;
+
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [borradorNum, setBorradorNum] = useState("");
+  const [rangoNum, setRangoNum] = useState<[number, number]>([1, 0]);
+  const cancelarNum = useRef(false);
 
   const cambiar = <C extends keyof Hermano>(id: string, campo: C, valor: Hermano[C]) =>
     setEst((p) => ({
@@ -47,6 +52,30 @@ export function TablaHermanos({ est, setEst, filtro }: Props) {
     setEst((p) => ({ ...p, hermanos: p.hermanos.filter((h) => h.id !== id) }));
   };
 
+  const abrirEdicionNum = (i: number) => {
+    const h = hermanos[i];
+    const nHon = hermanos.filter((x) => x.bloque === "HONORARIOS").length;
+    const nTit = hermanos.filter((x) => x.bloque === "TITULARES").length;
+    let rango: [number, number];
+    if (h.bloque === "HONORARIOS") rango = [1, nHon];
+    else if (h.bloque === "TITULARES") rango = [1, nTit];
+    else rango = [nTit + 1, hermanos.length];
+    setEditandoId(h.id);
+    setBorradorNum(String(numeros[i]));
+    setRangoNum(rango);
+  };
+
+  const confirmarNum = (id: string) => {
+    const n = Number(borradorNum);
+    if (Number.isInteger(n) && n >= rangoNum[0] && n <= rangoNum[1]) {
+      setEst((p) => ({ ...p, hermanos: moverANumero(p.hermanos, id, n) }));
+      setEditandoId(null);
+    } else {
+      setEditandoId(null);
+      setBorradorNum("");
+    }
+  };
+
   const visibles = useMemo(() => {
     const q = filtro.trim().toLowerCase();
     return hermanos
@@ -67,14 +96,43 @@ export function TablaHermanos({ est, setEst, filtro }: Props) {
           <th className="th-bloque">Bloque</th>
           <th className="th-tel">Teléfono</th>
           <th>Observaciones</th>
-          <th className="th-acc">Orden</th>
+          <th className="th-acc">Orden <span className="input-ayuda">(pulsa el nº para reordenar)</span></th>
         </tr>
       </thead>
       <tbody>
         {visibles.map(({ h, i }) => (
           <Fragment key={h.id}>
             <tr>
-              <td className="num">{numeros[i]}</td>
+              <td className="num">
+                {editandoId === h.id ? (
+                  <input
+                    autoFocus
+                    className="num-edit"
+                    value={borradorNum}
+                    title={`Entre ${rangoNum[0]} y ${rangoNum[1]}`}
+                    onChange={(e) => setBorradorNum(e.target.value)}
+                    onBlur={() => confirmarNum(h.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        cancelarNum.current = false;
+                        (e.target as HTMLInputElement).blur();
+                      } else if (e.key === "Escape") {
+                        cancelarNum.current = true;
+                        (e.target as HTMLInputElement).blur();
+                      }
+                    }}
+                  />
+                ) : (
+                  <button
+                    className="num-enlace"
+                    onClick={() => abrirEdicionNum(i)}
+                    disabled={!conRaya}
+                    title={`Marcar como ${h.bloque.toLowerCase() === "suplentes" ? "suplente" : "puesto"} nº…`}
+                  >
+                    {numeros[i]}
+                  </button>
+                )}
+              </td>
               <td>
                 <input
                   className="txt"

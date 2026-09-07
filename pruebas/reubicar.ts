@@ -1,4 +1,4 @@
-import { crearHermano, reubicarEnBloque } from "../src/lib/modelo";
+import { crearHermano, moverANumero, reubicarEnBloque } from "../src/lib/modelo";
 import type { Bloque } from "../src/types";
 
 let fallos = 0;
@@ -42,6 +42,32 @@ const lista = [
 // Mismo bloque e id inexistente: no-op.
 igual(nombres(reubicarEnBloque(lista, lista[2].id, "TITULARES")), nombres(lista), "mismo bloque no mueve");
 igual(nombres(reubicarEnBloque(lista, "nope", "HONORARIOS")), nombres(lista), "id inexistente no mueve");
+
+// ---- moverANumero: recoloca dentro del mismo bloque ----
+
+// Llevar a un titular al número 1 (primera posición de titulares).
+{
+  const r = moverANumero(lista, lista[3].id, 1);
+  igual(nombres(r), ["Hon1", "Hon2", "Tit2", "Tit1", "Sup1"], "titular → nº 1 queda primero del bloque");
+}
+
+// Llevar a un honorario a la última posición de honorarios.
+{
+  const r = moverANumero(lista, lista[0].id, 2);
+  igual(nombres(r), ["Hon2", "Hon1", "Tit1", "Tit2", "Sup1"], "honorario → nº 2 (último) queda al final de honorarios");
+}
+
+// Un suplente ya numerado M+1 → movimiento válido: a M (el último).
+{
+  const l2 = crearHermano({ nombre: "Sup3", bloque: "SUPLENTES" });
+  const base = [...lista, l2];
+  const r = moverANumero(base, base[4].id, 4);
+  igual(nombres(r), ["Hon1", "Hon2", "Tit1", "Tit2", "Sup3", "Sup1"], "suplente moved to nº 4");
+}
+
+// Fuera de rango e id inexistente: no-op.
+igual(nombres(moverANumero(lista, lista[2].id, 99)), nombres(lista), "titular nº 99 fuera de rango no mueve");
+igual(nombres(moverANumero(lista, "nope", 1)), nombres(lista), "id inexistente no mueve");
 
 if (fallos) process.exit(1);
 console.log("reubicar OK");

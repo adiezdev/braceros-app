@@ -175,3 +175,72 @@ export function reubicarEnBloque(
   l.splice(destino, 0, { ...hermanos[i], bloque });
   return l;
 }
+
+/**
+ * Mueve a un hermano dentro de su mismo bloque para que su Nº impreso pase a
+ * ser `objetivo`. Rangos (los que aparecen en la tabla): honorarios 1..N,
+ * titulares 1..t, suplentes (t+1)..M. Sin salir del bloque, así la lista
+ * queda agrupada y la hoja impresa coherente. Devuelve el array original si
+ * el objetivo no es un entero dentro del rango.
+ */
+export function moverANumero(
+  hermanos: Hermano[],
+  id: string,
+  objetivo: number,
+): Hermano[] {
+  const i = hermanos.findIndex((h) => h.id === id);
+  if (i === -1 || !Number.isInteger(objetivo)) return hermanos;
+  const h = hermanos[i];
+
+  const nHon = contarBloque(hermanos, "HONORARIOS");
+  const nTit = contarBloque(hermanos, "TITULARES");
+  const nTotal = hermanos.length - nHon;
+  let p: number;
+  if (h.bloque === "HONORARIOS") {
+    if (objetivo < 1 || objetivo > nHon) return hermanos;
+    p = objetivo;
+  } else if (h.bloque === "TITULARES") {
+    if (objetivo < 1 || objetivo > nTit) return hermanos;
+    p = objetivo;
+  } else {
+    if (objetivo < nTit + 1 || objetivo > nTotal) return hermanos;
+    p = objetivo - nTit;
+  }
+  if (numerosPorBloque(hermanos)[i] === objetivo) return hermanos;
+
+  // Recoloca al hermano dentro del tramo de su bloque: quedan exactamente
+  // p-1 hermanos del mismo bloque delante, y los demás conservan su orden.
+  const sinEl = hermanos.filter((_, k) => k !== i);
+  const primer = (cumple: (x: Hermano) => boolean): number => {
+    const k = sinEl.findIndex(cumple);
+    return k === -1 ? sinEl.length : k;
+  };
+  let inicio: number;
+  let fin: number;
+  if (h.bloque === "HONORARIOS") {
+    inicio = 0;
+    fin = primer((x) => x.bloque !== "HONORARIOS");
+  } else if (h.bloque === "TITULARES") {
+    inicio = primer((x) => x.bloque === "TITULARES");
+    const primeroSup = primer((x) => x.bloque === "SUPLENTES");
+    if (inicio === sinEl.length) inicio = primeroSup;
+    fin = primeroSup;
+  } else {
+    inicio = primer((x) => x.bloque === "SUPLENTES");
+    fin = sinEl.length;
+  }
+  let insertarEn = fin;
+  let vistos = 0;
+  for (let k = inicio; k < fin; k++) {
+    if (sinEl[k].bloque === h.bloque) {
+      vistos += 1;
+      if (vistos === p) {
+        insertarEn = k;
+        break;
+      }
+    }
+  }
+  const l = [...sinEl];
+  l.splice(insertarEn, 0, h);
+  return l;
+}
