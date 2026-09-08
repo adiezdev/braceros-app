@@ -1,4 +1,5 @@
 import { Camera, Check } from "lucide-react";
+import { motion } from "motion/react";
 import { useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -45,13 +46,23 @@ export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
     : `${nombreProcesion(procesion)} ${anio}`;
 
   return (
-    <div className="volcado">
-      <div className="volcado__panel">
+    <motion.div
+      className="volcado"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
+      <motion.div
+        className="volcado__panel"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+      >
         <div className="volcado__top">
           <h3>
             <Camera size={16} /> Leer de la foto
           </h3>
-          <IconButton tono="volcado" onClick={onCerrar} title="Cerrar" />
+          <IconButton tono="volcado" onClick={onCerrar} title="Cerrar" etiqueta="Cerrar" />
         </div>
 
         <div className="volcado__modos">
@@ -208,7 +219,7 @@ export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
             </div>
           </>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

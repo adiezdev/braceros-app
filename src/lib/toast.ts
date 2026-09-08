@@ -1,6 +1,8 @@
 import { sileo, type SileoOptions } from "sileo";
 
-/** Marca del conjunto: burdeos para estructura, rojo faltas, verde asistencias. */
+/** Marca del conjunto: burdeos para estructura, rojo faltas, verde asistencias.
+ *  Valores fijos — los toasts se renderizan fuera del DOM tree de .app y no
+ *  heredan los tokens CSS. Se mantienen sincronizados con tokens.css. */
 const FILL_OK = "#2F5A3D";
 const FILL_INFO = "#7A1F2B";
 const FILL_ERROR = "#C0392B";

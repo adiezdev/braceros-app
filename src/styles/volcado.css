@@ -4,45 +4,45 @@
   border-radius:0; background:rgba(28,22,20,0.45); padding:0; display:flex;
   align-items:flex-start; justify-content:center; overflow:auto;
   padding:3vh 12px 40px; }
-.volcado__panel { position:relative; width:100%; max-width:760px; background:#fff;
-  border:1px solid var(--filete); border-radius:8px; box-shadow:0 18px 50px rgba(0,0,0,0.3);
+.volcado__panel { position:relative; width:100%; max-width:760px; background:var(--panel);
+  border:1px solid var(--filete); border-radius:var(--radius-md); box-shadow:var(--shadow-xl);
   padding:14px 16px; margin-top:3vh; }
 .volcado__top { display:flex; align-items:center; justify-content:space-between;
   gap:8px; }
-.volcado__top h3 { margin:0; font-family:'Poppins',Arial,sans-serif; font-size:16px;
+.volcado__top h3 { margin:0; font-family:'Poppins',Arial,sans-serif; font-size:var(--fs-md);
   color:var(--burdeos); display:flex; gap:6px; align-items:center; }
 .volcado__modos { display:inline-flex; margin:10px 0 2px; border:1px solid var(--filete);
-  border-radius:6px; overflow:hidden; }
-.volcado__modo { border:none; background:#fff; padding:6px 14px; cursor:pointer;
-  font:inherit; font-size:13px; color:var(--suave); }
+  border-radius:var(--radius-md); overflow:hidden; }
+.volcado__modo { border:none; background:var(--panel); padding:6px 14px; cursor:pointer;
+  font:inherit; font-size:var(--fs-sm); color:var(--suave); }
 .volcado__modo + .volcado__modo { border-left:1px solid var(--filete); }
 .volcado__modo.is-activo { background:var(--burdeos); color:#fff; }
-.volcado__ayuda { font-size:13px; color:var(--suave); margin:8px 0 12px; }
+.volcado__ayuda { font-size:var(--fs-sm); color:var(--suave); margin:8px 0 12px; }
 .volcado__controles { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;
   margin-bottom:12px; }
 .volcado__controles label { display:flex; flex-direction:column; gap:3px;
-  font-size:12px; color:var(--suave); }
+  font-size:var(--fs-xs); color:var(--suave); }
 .volcado__controles select { font:inherit; padding:5px 8px; border:1px solid
-  var(--filete); border-radius:4px; background:#fff; }
+  var(--filete); border-radius:var(--radius-sm); background:var(--panel); }
 .volcado__error { color:var(--rojo); font-weight:600; margin:0 0 10px; }
 .volcado__errores { margin:0 0 10px; padding-left:18px; color:var(--rojo);
-  font-size:13px; }
+  font-size:var(--fs-sm); }
 .volcado__errores li { margin-bottom:2px; }
-.volcado__resumen { font-size:12px; color:var(--suave); margin:0 0 8px; }
+.volcado__resumen { font-size:var(--fs-xs); color:var(--suave); margin:0 0 8px; }
 .volcado__duda { color:var(--laton); font-weight:600; }
 .volcado__baja-info { color:var(--rojo); font-weight:600; }
-.volcado__fila-baja { background:#FBF1F2; }
+.volcado__fila-baja { background:var(--celda-rojo); }
 .volcado__fila-baja td { color:var(--suave); }
 .volcado__tachado { text-decoration:line-through; }
 .volcado__tabla { max-height:380px; overflow:auto; border:1px solid var(--filete);
-  border-radius:4px; margin-bottom:12px; }
+  border-radius:var(--radius-sm); margin-bottom:12px; }
 .m--duda { outline:2px solid var(--laton); outline-offset:-2px; }
 .volcado__acciones { display:flex; gap:8px; }
 .volcado__acciones .btn { display:inline-flex; align-items:center; gap:6px; }
 
-.volcado-fab { position:fixed; right:20px; bottom:20px; z-index:40; width:56px;
-  height:56px; border-radius:50%; border:none; background:var(--burdeos); color:#fff;
-  display:flex; align-items:center; justify-content:center; cursor:pointer;
-  box-shadow:0 6px 18px rgba(0,0,0,0.3); transition:transform .12s ease, background .12s; }
+.volcado-fab { position:fixed; right:20px; bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
+  z-index:40; width:56px; height:56px; border-radius:50%; border:none; background:var(--burdeos);
+  color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  box-shadow:var(--shadow-lg); transition:transform .12s ease, background .12s; }
 .volcado-fab:hover { transform:translateY(-2px); background:color-mix(in srgb, var(--burdeos) 88%, #000); }
 .volcado-fab svg { pointer-events:none; }

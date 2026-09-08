@@ -1,4 +1,5 @@
-import { Download, Maximize, Minimize, Plus, RotateCcw, Search, Upload, X } from "lucide-react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { Download, Maximize, Minimize, Moon, MoreHorizontal, Plus, RotateCcw, Search, Sun, Upload, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 import { Aviso } from "./components/Aviso";
@@ -14,6 +15,8 @@ import { ANIO_BASE, ENTIDAD } from "./constants";
 import { useAccionesApp } from "./hooks/useAccionesApp";
 import { useEstadoRemoto, type Conexion } from "./hooks/useEstadoRemoto";
 import { usePantallaCompleta } from "./hooks/usePantallaCompleta";
+import { useMediaQuery } from "./hooks/useMediaQuery";
+import { useTema } from "./hooks/useTema";
 import type { CfgImpresion, Pestana } from "./types";
 import { ArchivadosView } from "./views/ArchivadosView";
 
@@ -35,12 +38,15 @@ const TEXTO_CONEXION: Record<Conexion, string> = {
 export default function App() {
   const { est, setEst, reemplazar, conexion, error, recargar } = useEstadoRemoto();
   const { ocultar, activo, alternar } = usePantallaCompleta();
+  const tema = useTema();
 
   const [pestana, setPestana] = useState<Pestana>("hermanos");
   const [filtro, setFiltro] = useState("");
   const [volcadoFoto, setVolcadoFoto] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const esMovil = useMediaQuery("(max-width: 760px)");
 
+  const [guardando, setGuardando] = useState(false);
   const [cfgImpr, setCfgImpr] = useState<CfgImpresion>({
     tipo: "asistencias",
     anioAnterior: ANIO_BASE,
@@ -119,27 +125,71 @@ export default function App() {
               e.target.value = "";
             }}
           />
-          <Button fuerte onClick={() => void exportar()}>
-            <Download size={15} /> Guardar Excel
-          </Button>
-          <Button onClick={restaurar} title="Volver a la lista transcrita">
-            <RotateCcw size={15} /> Restaurar lista
-          </Button>
-          <Button
-            fino
-            onClick={alternar}
-            title={activo ? "Salir de pantalla completa" : "Pantalla completa: oculta el resumen y gana espacio"}
-          >
-            {activo ? <Minimize size={15} /> : <Maximize size={15} />}
-            Pantalla completa
-          </Button>
-          <Button
-            fino
-            onClick={() => inputRef.current?.click()}
-            title="Sustituir todo por el contenido de un Excel"
-          >
-            <Upload size={15} /> Cargar otro Excel
-          </Button>
+          {esMovil ? (
+            <>
+              <Button fuerte onClick={() => { setGuardando(true); void exportar().finally(() => setGuardando(false)); }} disabled={guardando}>
+                {guardando ? <span className="btn__spinner" aria-hidden="true" /> : <Download size={15} />}
+                {guardando ? "Guardando…" : "Guardar"}
+              </Button>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <Button fino className="cabecera__mas" title="Más acciones" aria-label="Más acciones">
+                    <MoreHorizontal size={16} />
+                  </Button>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content className="menu" align="end" sideOffset={6}>
+                    <DropdownMenu.Item className="menu__item" onSelect={() => tema.alternar()}>
+                      {tema.tema === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+                      {tema.tema === "dark" ? "Tema claro" : "Tema oscuro"}
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item className="menu__item" onSelect={() => { setGuardando(true); void restaurar().finally(() => setGuardando(false)); }}>
+                      <RotateCcw size={15} /> Restaurar lista
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item className="menu__item" onSelect={alternar}>
+                      {activo ? <Minimize size={15} /> : <Maximize size={15} />}
+                      Pantalla completa
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item className="menu__item" onSelect={() => inputRef.current?.click()}>
+                      <Upload size={15} /> Cargar otro Excel
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
+            </>
+          ) : (
+            <>
+              <Button
+                fino
+                onClick={tema.alternar}
+                title={tema.tema === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+              >
+                {tema.tema === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+                {tema.tema === "dark" ? "Tema claro" : "Tema oscuro"}
+              </Button>
+              <Button fuerte onClick={() => { setGuardando(true); void exportar().finally(() => setGuardando(false)); }} disabled={guardando}>
+                <Download size={15} /> {guardando ? "Guardando…" : "Guardar Excel"}
+              </Button>
+              <Button onClick={() => { setGuardando(true); void restaurar().finally(() => setGuardando(false)); }} disabled={guardando} title="Volver a la lista transcrita">
+                <RotateCcw size={15} /> Restaurar lista
+              </Button>
+              <Button
+                fino
+                onClick={alternar}
+                title={activo ? "Salir de pantalla completa" : "Pantalla completa: oculta el resumen y gana espacio"}
+              >
+                {activo ? <Minimize size={15} /> : <Maximize size={15} />}
+                Pantalla completa
+              </Button>
+              <Button
+                fino
+                onClick={() => inputRef.current?.click()}
+                title="Sustituir todo por el contenido de un Excel"
+              >
+                <Upload size={15} /> Cargar otro Excel
+              </Button>
+            </>
+          )}
         </div>
       </header>
 

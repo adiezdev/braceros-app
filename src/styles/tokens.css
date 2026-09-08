@@ -1,18 +1,92 @@
 /* ------------------------------------------------------------------ *
  * Tokens y base
- * Papel gris-arena, burdeos para la estructura, rojo para faltas e
- * impagos, verde para asistencias y latón para un solo detalle: la
- * raya que marca el cierre del cupo.
+ * Paleta y tipografía del CRM de la Agrupación de Braceros de San
+ * Martín. Identidad: papel gris-arena, burdeos para la estructura,
+ * latón como acento único (la raya del cupo).
+ *
+ * - Escala tipográfica modular (minor third, ratio 1.2)
+ * - Rampas neutra y de marca, mapeadas a roles semánticos
+ * - Tema claro / oscuro vía prefers-color-scheme
  * ------------------------------------------------------------------ */
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-body { background: #E8E4DC; }
+body { background: var(--papel); }
 
 .app, .solo-impresion {
-  --papel:#E8E4DC; --panel:#FDFCFA; --burdeos:#7A1F2B;
-  --burdeos-claro:#9E4A57; --rojo:#C0392B; --verde:#2F5A3D; --laton:#A98432;
-  --tinta:#2A2622; --suave:#6B635C; --filete:#CFC8BD;
+
+  /* --- rampa neutra --- */
+  --gris-950:#1C1814; --gris-900:#2A2622; --gris-800:#3A3631; --gris-700:#4E4943;
+  --gris-600:#6B635C; --gris-500:#8C857D; --gris-400:#B3ACA3; --gris-300:#CFC8BD;
+  --gris-200:#E4DFD6; --gris-100:#EFEAE2; --gris-50:#F7F4EF;
+
+  /* --- rampa de marca: burdeos (estructura) --- */
+  --vino-700:#5E151F; --vino-600:#6C1B26; --vino-500:#7A1F2B; --vino-400:#9E4A57;
+  --vino-300:#C05A68; --vino-100:#F7EDEF;
+
+  /* --- rampa de marca: latón (acento cupo) --- */
+  --laton-600:#8A6B24; --laton-500:#A98432; --laton-400:#C9A24A;
+  --laton-100:#FBF7EE;
+
+  /* --- colores de estado --- */
+  --verde-700:#1F4630; --verde-600:#2F5A3D; --verde-500:#3E7A52; --verde-300:#6FA07F;
+  --verde-100:#F1F6F2;
+  --rojo-700:#7E1F1A; --rojo-600:#C0392B; --rojo-500:#D24A3C; --rojo-400:#E06A5A;
+  --rojo-100:#FBF1F2;
+  --ambar-600:#B07A2A; --ambar-100:#FBF7EE;
+
+  /* --- roles semánticos (tema claro) --- */
+  --papel:var(--gris-100);
+  --panel:#FDFCFA;
+  --tinta:var(--gris-900);
+  --suave:var(--gris-700);
+  --filete:var(--gris-300);
+  --burdeos:var(--vino-500);
+  --burdeos-oscuro:var(--vino-700);
+  --burdeos-claro:var(--vino-400);
+  --rojo:var(--rojo-600);
+  --verde:var(--verde-600);
+  --laton:var(--laton-500);
+
+  /* --- celdas y hover --- */
+  --celda-verde:var(--verde-100);
+  --celda-rojo:var(--rojo-100);
+  --celda-laton:var(--laton-100);
+  --hover-claro:var(--vino-100);
+  --borde-suave:var(--gris-200);
+  --hover-fila:var(--gris-50);
+  --vacia-gris:var(--gris-400);
+
+  /* --- escala tipográfica (minor third) --- */
+  --fs-2xs:0.6875rem;   /* 11px */
+  --fs-xs:0.75rem;      /* 12px */
+  --fs-sm:0.8125rem;    /* 13px */
+  --fs-base:0.875rem;   /* 14px */
+  --fs-md:0.9375rem;    /* 15px */
+  --fs-lg:1.25rem;      /* 20px */
+  --fs-xl:1.625rem;     /* 26px */
+  --fs-2xl:2.125rem;    /* 34px */
+
+  /* --- sombras de elevación --- */
+  --shadow-sm:0 1px 2px rgba(28,24,20,.08);
+  --shadow-md:0 2px 6px rgba(28,24,20,.12);
+  --shadow-lg:0 8px 24px rgba(28,24,20,.18);
+  --shadow-xl:0 18px 48px rgba(28,24,20,.25);
+
+  /* --- radios --- */
+  --radius-sm:4px;
+  --radius-md:8px;
+  --radius-lg:12px;
+  --radius-full:999px;
+
+  /* --- espaciado --- */
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:24px;
+  --space-8:32px;
 }
 
 .app *:focus-visible { outline:2px solid var(--burdeos); outline-offset:1px; }
@@ -20,3 +94,52 @@ body { background: #E8E4DC; }
 @media (prefers-reduced-motion:reduce) {
   * { transition:none !important; animation:none !important; }
 }
+
+/* --- Tema oscuro ---------------------------------------------------
+   El atributo data-theme se fija en <html> por un script inline
+   (en index.html) antes del primer pintado, leyendo localStorage o
+   la preferencia del sistema. Los overrides oscuros apuntan a LOS
+   MISMOS roles, manteniendo la polaridad de la rampa neutra
+   (gris-50 = claro, gris-950 = oscuro) para que --tinta --suave
+   --panel sigan siendo coherentes. */
+[data-theme="dark"] .app, [data-theme="dark"] .solo-impresion,
+[data-theme="dark"] .dialogo__capas {
+  --gris-950:#070605; --gris-900:#12100E; --gris-800:#1E1B19; --gris-700:#2A2622;
+  --gris-600:#3A3631; --gris-500:#4E4943; --gris-400:#6A635B; --gris-300:#8C857D;
+  --gris-200:#B3ACA3; --gris-100:#D9D3C9; --gris-50:#F0ECE4;
+
+  --vino-700:#2A1519; --vino-600:#8E4350; --vino-500:#C05A68; --vino-400:#9E4A57;
+  --vino-300:#C05A68; --vino-100:#3A2A2E;
+  --laton-600:#8A6B24; --laton-500:#C9A24A; --laton-400:#C9A24A; --laton-100:#3D3520;
+  --verde-700:#1F4630; --verde-600:#5C8B6B; --verde-500:#6FA07F; --verde-300:#6FA07F;
+  --verde-100:#2A3D2F;
+  --rojo-700:#7E1F1A; --rojo-600:#E06A5A; --rojo-500:#E06A5A; --rojo-400:#E06A5A;
+  --rojo-100:#3D2A2A;
+  --ambar-600:#B07A2A; --ambar-100:#3D3520;
+
+  --papel:var(--gris-900);
+  --panel:var(--gris-800);
+  --tinta:var(--gris-100);
+  --suave:var(--gris-300);
+  --filete:var(--gris-300);
+  --burdeos:var(--vino-500);
+  --burdeos-oscuro:var(--vino-700);
+  --burdeos-claro:var(--vino-400);
+  --rojo:var(--rojo-600);
+  --verde:var(--verde-600);
+  --laton:var(--laton-500);
+
+  --celda-verde:var(--verde-100);
+  --celda-rojo:var(--rojo-100);
+  --celda-laton:var(--laton-100);
+  --hover-claro:var(--vino-100);
+  --borde-suave:var(--gris-600);
+  --hover-fila:var(--gris-700);
+  --vacia-gris:var(--gris-500);
+
+  --shadow-sm:0 1px 2px rgba(0,0,0,.2);
+  --shadow-md:0 2px 6px rgba(0,0,0,.28);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.35);
+  --shadow-xl:0 18px 48px rgba(0,0,0,.45);
+}
+

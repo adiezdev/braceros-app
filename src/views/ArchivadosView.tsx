@@ -1,11 +1,11 @@
 import type { Dispatch, SetStateAction } from "react";
-import { RotateCcw, Trash2 } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 
 import { useBorrarPermanente } from "../hooks/useBorrarPermanente";
 import { useReactivar } from "../hooks/useReactivar";
 import { useSeleccion } from "../hooks/useSeleccion";
+import { BulkBar } from "../components/BulkBar";
 import { Button } from "../components/ui/Button";
-import { IconButton } from "../components/ui/IconButton";
 import type { Estado } from "../types";
 
 interface Props {
@@ -42,19 +42,12 @@ export function ArchivadosView({ est, setEst }: Props) {
   return (
     <div className="archivados-wrap">
       {seleccion.size > 0 && (
-        <div className="bulk">
-          <span className="bulk__contador">
-            {seleccion.size} {seleccion.size === 1 ? "seleccionado" : "seleccionados"}
-          </span>
-          <Button
-            className="bulk__peligro"
-            onClick={borrarSeleccion}
-            title="Borrar definitivamente los seleccionados: no se puede deshacer"
-          >
-            <Trash2 size={15} /> Borrar para siempre
-          </Button>
-          <IconButton tono="bulk" onClick={limpiar} title="Quitar la selección" />
-        </div>
+        <BulkBar
+          variante="archivados"
+          cuantos={seleccion.size}
+          onEliminar={borrarSeleccion}
+          onCerrar={limpiar}
+        />
       )}
 
       <table className="rejilla archivados-tabla">

@@ -6,8 +6,8 @@ import { useEdicionNumero } from "../hooks/useEdicionNumero";
 import { useReordenar } from "../hooks/useReordenar";
 import { useSeleccion } from "../hooks/useSeleccion";
 import { filtrarVisibles } from "../lib/filtrar";
-import { numerosPorBloque, reubicarEnBloque } from "../lib/modelo";
-import type { Bloque, Estado, Hermano } from "../types";
+import { cambiarCampoHermano, numerosPorBloque } from "../lib/modelo";
+import type { Estado, Hermano } from "../types";
 import { BulkBar } from "./BulkBar";
 import { FilaHermano } from "./FilaHermano";
 
@@ -33,13 +33,7 @@ export function TablaOrden({ est, setEst, filtro }: Props) {
   const todasSeleccionadas = todasMarcadas(idsVisibles);
 
   const cambiarCampo = <C extends keyof Hermano>(id: string, campo: C, valor: Hermano[C]) =>
-    setEst((p) => ({
-      ...p,
-      hermanos:
-        campo === "bloque"
-          ? reubicarEnBloque(p.hermanos, id, valor as Bloque)
-          : p.hermanos.map((h) => (h.id === id ? { ...h, [campo]: valor } : h)),
-    }));
+    setEst((p) => ({ ...p, hermanos: cambiarCampoHermano(p.hermanos, id, campo, valor) }));
 
   return (
     <>
@@ -55,7 +49,7 @@ export function TablaOrden({ est, setEst, filtro }: Props) {
         />
       )}
 
-      <table className="rejilla">
+      <table className="rejilla rejilla--hermanos">
         <thead>
           <tr>
             <th className="th-check">
@@ -89,19 +83,23 @@ export function TablaOrden({ est, setEst, filtro }: Props) {
               conRaya={conRaya}
               seleccionado={seleccion.has(h.id)}
               onAlternar={alternar}
-              editandoNumero={editandoId === h.id}
-              borrador={borrador}
-              pista={pista}
-              rango={rango}
-              onSetBorrador={setBorrador}
-              onConfirmarNumero={confirmar}
-              onEnter={enEnter}
-              onEscape={enEscape}
-              onAbrirNumero={abrir}
-              onCambiarCampo={cambiarCampo}
-              onMover={mover}
-              onInsertarDebajo={insertarDebajo}
-              onBorrar={borrar}
+              edicion={{
+                editandoNumero: editandoId === h.id,
+                borrador,
+                pista,
+                rango,
+                onSetBorrador: setBorrador,
+                onConfirmarNumero: confirmar,
+                onEnter: enEnter,
+                onEscape: enEscape,
+                onAbrirNumero: abrir,
+              }}
+              acciones={{
+                onMover: mover,
+                onInsertarDebajo: insertarDebajo,
+                onBorrar: borrar,
+                onCambiarCampo: cambiarCampo,
+              }}
               cupo={est.cupo}
               mostrarRaya={conRaya}
               numeros={numeros}

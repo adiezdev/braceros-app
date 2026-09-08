@@ -1,6 +1,6 @@
 .archivados-wrap { padding:0; }
 
-.archivados-tabla { font-size:13px; }
+.archivados-tabla { font-size:var(--fs-sm); }
 
 .archivados-tabla th.th-acc { width:130px; }
 .archivados-tabla th.th-num { width:44px; text-align:right; }
@@ -9,7 +9,7 @@
 .archivados-tabla td.num { text-align:center; font-variant-numeric:tabular-nums; color:var(--suave); }
 .archivados-nombre { max-width:360px; }
 
-.archivados-tabla tbody tr:hover td { background:#FAF7F1; }
+.archivados-tabla tbody tr:hover td { background:var(--hover-fila); }
 
 .archivados-tabla .acc { white-space:nowrap; }
 

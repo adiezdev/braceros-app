@@ -4,16 +4,16 @@
 .panel-impr { padding:14px 16px; }
 .panel-impr__cfg { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
 .panel-impr__cfg label { display:flex; flex-direction:column; gap:3px;
-  font-size:12px; color:var(--suave); }
+  font-size:var(--fs-xs); color:var(--suave); }
 .panel-impr__cfg input, .panel-impr__cfg select { font:inherit;
-  border:1px solid var(--filete); padding:5px 7px; background:#fff;
+  border:1px solid var(--filete); padding:5px 7px; background:var(--panel);
   color:var(--tinta); width:150px; }
-.panel-impr__nota { color:var(--suave); font-size:13px; max-width:70ch;
+.panel-impr__nota { color:var(--suave); font-size:var(--fs-sm); max-width:70ch;
   margin:12px 0 0; }
 .anios-blancos { display:flex; flex-direction:column; gap:4px; min-width:150px; }
 .anios-blancos__fila { display:flex; gap:4px; }
 .anios-blancos__fila input { width:150px; }
-.anios-blancos__x { border:1px solid var(--filete); background:#fff;
+.anios-blancos__x { border:1px solid var(--filete); background:var(--panel);
   color:var(--suave); padding:0 6px; cursor:pointer; }
 .anios-blancos__x:hover { color:var(--tinta); }
 .previa { margin-top:16px; border-top:1px solid var(--filete); padding-top:16px;
@@ -32,13 +32,18 @@
 .impresion__portada .impresion__sub { font-size:13px; margin-top:6px; }
 .impresion__escudo { width:180px; height:auto; }
 
+/* shared block heading styles for both preview and print */
+.impresion--previa .impresion__bloque h2,
+.impresion--print .impresion__bloque h2 { font-family:'Poppins',Arial,sans-serif;
+  font-size:14px; color:var(--burdeos); }
+.impresion--previa .impresion__bloque h2 span,
+.impresion--print .impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
+
 /* previsualización: listado continuo, scrollable */
 .impresion--previa { background:#fff; width:100%; }
 .impresion--previa .impresion__portada { min-height:46vh; }
 .impresion--previa .impresion__bloque { margin-bottom:18px; }
-.impresion--previa .impresion__bloque h2 { font-family:'Poppins',Arial,sans-serif;
-  font-size:14px; color:var(--burdeos); margin:10px 0 4px; }
-.impresion--previa .impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
+.impresion--previa .impresion__bloque h2 { margin:10px 0 4px; }
 
 /* impresión: portada a toda la primera hoja, luego los bloques fluyen y
    las tablas se parten por filas al llenar cada hoja (la cabecera se repite).
@@ -47,9 +52,7 @@
 .impresion--print { padding: 0; }
 .impresion--print .impresion__portada { height: 269mm; page-break-after: always;
   break-after: page; }
-.impresion--print .impresion__bloque h2 { font-family:'Poppins',Arial,sans-serif;
-  font-size:14px; color:var(--burdeos); margin:0 0 4px; }
-.impresion--print .impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
+.impresion--print .impresion__bloque h2 { margin:0 0 4px; }
 
 .impresion table { border-collapse:collapse; width:100%; font-size:13px;
   font-family:Arial,Helvetica,sans-serif; }

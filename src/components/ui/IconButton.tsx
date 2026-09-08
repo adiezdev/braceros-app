@@ -13,7 +13,7 @@ export function IconButton({
 }) {
   const clases = ["icon-btn", `icon-btn--${tono}`, className].filter(Boolean).join(" ");
   return (
-    <button className={clases} {...rest}>
+    <button className={clases} aria-label={etiqueta} {...rest}>
       <X size={16} />
       {etiqueta}
     </button>

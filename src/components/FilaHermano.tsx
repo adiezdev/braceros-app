@@ -8,21 +8,7 @@ import { LineaCupo } from "./LineaCupo";
 import { Input } from "./ui/Input";
 import { Select } from "./ui/Select";
 
-interface Props {
-  hermano: Hermano;
-  indice: number;
-  /** Número impreso para este puesto */
-  numero: number;
-  /** Total de hermanos (para deshabilitar "bajar") */
-  totalHermanos: number;
-  /** Si hay filtro activo, no se puede reordenar ni editar número */
-  conRaya: boolean;
-
-  // Selección
-  seleccionado: boolean;
-  onAlternar: (id: string) => void;
-
-  // Edición de número
+export interface EdicionNumero {
   editandoNumero: boolean;
   borrador: string;
   pista: string;
@@ -32,16 +18,25 @@ interface Props {
   onEnter: () => void;
   onEscape: () => void;
   onAbrirNumero: (indice: number) => void;
+}
 
-  // Campos editables
-  onCambiarCampo: <C extends keyof Hermano>(id: string, campo: C, valor: Hermano[C]) => void;
-
-  // Acciones de fila
+export interface AccionesFila {
   onMover: (indice: number, dir: -1 | 1) => void;
   onInsertarDebajo: (indice: number) => void;
   onBorrar: (id: string, nombre: string) => void;
+  onCambiarCampo: <C extends keyof Hermano>(id: string, campo: C, valor: Hermano[C]) => void;
+}
 
-  // Línea de cupo
+interface Props {
+  hermano: Hermano;
+  indice: number;
+  numero: number;
+  totalHermanos: number;
+  conRaya: boolean;
+  seleccionado: boolean;
+  onAlternar: (id: string) => void;
+  edicion: EdicionNumero;
+  acciones: AccionesFila;
   cupo: number;
   mostrarRaya: boolean;
   numeros: number[];
@@ -55,23 +50,18 @@ function FilaHermanoInner({
   conRaya,
   seleccionado,
   onAlternar,
-  editandoNumero,
-  borrador,
-  pista,
-  rango,
-  onSetBorrador,
-  onConfirmarNumero,
-  onEnter,
-  onEscape,
-  onAbrirNumero,
-  onCambiarCampo,
-  onMover,
-  onInsertarDebajo,
-  onBorrar,
+  edicion,
+  acciones,
   cupo,
   mostrarRaya,
   numeros,
 }: Props) {
+  const {
+    editandoNumero, borrador, pista, rango,
+    onSetBorrador, onConfirmarNumero, onEnter, onEscape, onAbrirNumero,
+  } = edicion;
+  const { onMover, onInsertarDebajo, onBorrar, onCambiarCampo } = acciones;
+
   return (
     <>
       <tr>
@@ -113,7 +103,7 @@ function FilaHermanoInner({
             </button>
           )}
         </td>
-        <td>
+        <td className="td-nombre">
           <Input
             value={h.nombre}
             placeholder="Nombre y apellidos"
@@ -192,8 +182,8 @@ export const FilaHermano = React.memo(FilaHermanoInner, (prev, next) =>
   prev.hermano === next.hermano &&
   prev.numero === next.numero &&
   prev.seleccionado === next.seleccionado &&
-  prev.editandoNumero === next.editandoNumero &&
-  prev.borrador === next.borrador &&
+  prev.edicion.editandoNumero === next.edicion.editandoNumero &&
+  prev.edicion.borrador === next.edicion.borrador &&
   prev.indice === next.indice &&
   prev.conRaya === next.conRaya &&
   prev.totalHermanos === next.totalHermanos &&

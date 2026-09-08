@@ -21,7 +21,7 @@ createRoot(raiz).render(
     <QueryClientProvider client={queryClient}>
       <App />
       <Dialogo />
-      <Toaster position="top-center" theme="dark" offset={14} />
+      <Toaster position="top-center" theme="light" offset={14} />
     </QueryClientProvider>
   </StrictMode>
 );

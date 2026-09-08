@@ -2,7 +2,7 @@ import {
   ANIO_BASE, BLOQUES, CICLO_CUOTA, CICLO_MARCA, CUOTA_POR_DEFECTO, CUPO_POR_DEFECTO,
 } from "../constants";
 import { LISTA } from "../data/lista";
-import type { Bloque, Cuota, Estado, Hermano, HermanoArchivado, Marca } from "../types";
+import type { Bloque, ClaveProcesion, Cuota, Estado, Hermano, HermanoArchivado, Marca } from "../types";
 
 let contador = 0;
 
@@ -52,6 +52,43 @@ export function siguienteMarca(actual: Marca | undefined): Marca {
 export function siguienteCuota(actual: Cuota | undefined): Cuota {
   const i = CICLO_CUOTA.indexOf(actual ?? "");
   return CICLO_CUOTA[(i + 1) % CICLO_CUOTA.length];
+}
+
+export function alternarCuota(hermanos: Hermano[], id: string, anio: number): Hermano[] {
+  return hermanos.map((h) =>
+    h.id === id
+      ? { ...h, cuotas: { ...h.cuotas, [anio]: siguienteCuota(h.cuotas?.[anio]) } }
+      : h,
+  );
+}
+
+export function alternarAsistencia(
+  hermanos: Hermano[],
+  id: string,
+  anio: number,
+  clave: ClaveProcesion,
+): Hermano[] {
+  return hermanos.map((h) => {
+    if (h.id !== id) return h;
+    const prev = h.asis?.[anio] ?? { exc: "" as Marca, sm: "" as Marca };
+    return {
+      ...h,
+      asis: {
+        ...h.asis,
+        [anio]: { ...prev, [clave]: siguienteMarca(prev[clave]) },
+      },
+    };
+  });
+}
+
+export function cambiarCampoHermano<C extends keyof Hermano>(
+  hermanos: Hermano[],
+  id: string,
+  campo: C,
+  valor: Hermano[C],
+): Hermano[] {
+  if (campo === "bloque") return reubicarEnBloque(hermanos, id, valor as Bloque);
+  return hermanos.map((h) => (h.id === id ? { ...h, [campo]: valor } : h));
 }
 
 export function esAnio(v: unknown): boolean {

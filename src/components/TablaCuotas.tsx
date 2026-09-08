@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { ETIQUETA_BLOQUE } from "../constants";
 import { filtrarVisibles } from "../lib/filtrar";
-import { numerosPorBloque, siguienteCuota } from "../lib/modelo";
+import { alternarCuota, numerosPorBloque } from "../lib/modelo";
 import type { Estado, Hermano } from "../types";
 import { Celda } from "./Celda";
 import { LineaCupo } from "./LineaCupo";
@@ -78,14 +78,7 @@ export function TablaCuotas({ est, setEst, filtro }: Props) {
   const { hermanos, aniosCuotas, cupo, cuota } = est;
 
   const alternar = (id: string, anio: number) =>
-    setEst((p) => ({
-      ...p,
-      hermanos: p.hermanos.map((h) =>
-        h.id === id
-          ? { ...h, cuotas: { ...h.cuotas, [anio]: siguienteCuota(h.cuotas?.[anio]) } }
-          : h
-      ),
-    }));
+    setEst((p) => ({ ...p, hermanos: alternarCuota(p.hermanos, id, anio) }));
 
   const visibles = useMemo(() => filtrarVisibles(hermanos, filtro), [hermanos, filtro]);
 
@@ -93,7 +86,7 @@ export function TablaCuotas({ est, setEst, filtro }: Props) {
   const numeros = useMemo(() => numerosPorBloque(hermanos), [hermanos]);
 
   return (
-    <table className="rejilla">
+    <table className="rejilla rejilla--cuotas">
       <thead>
         <tr>
           <th className="th-num">Nº</th>

@@ -3,8 +3,8 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { ETIQUETA_BLOQUE, PROCESIONES } from "../constants";
 import { filtrarVisibles } from "../lib/filtrar";
-import { numerosPorBloque, siguienteMarca } from "../lib/modelo";
-import type { ClaveProcesion, Estado, Hermano, Marca } from "../types";
+import { alternarAsistencia, numerosPorBloque } from "../lib/modelo";
+import type { ClaveProcesion, Estado, Hermano } from "../types";
 import { Celda } from "./Celda";
 import { LineaCupo } from "./LineaCupo";
 
@@ -80,20 +80,7 @@ export function TablaAsistencias({ est, setEst, filtro }: Props) {
   const { hermanos, aniosAsis, cupo } = est;
 
   const alternar = (id: string, anio: number, clave: ClaveProcesion) =>
-    setEst((p) => ({
-      ...p,
-      hermanos: p.hermanos.map((h) => {
-        if (h.id !== id) return h;
-        const prev = h.asis?.[anio] ?? { exc: "" as Marca, sm: "" as Marca };
-        return {
-          ...h,
-          asis: {
-            ...h.asis,
-            [anio]: { ...prev, [clave]: siguienteMarca(prev[clave]) },
-          },
-        };
-      }),
-    }));
+    setEst((p) => ({ ...p, hermanos: alternarAsistencia(p.hermanos, id, anio, clave) }));
 
   const visibles = useMemo(() => filtrarVisibles(hermanos, filtro), [hermanos, filtro]);
 
@@ -101,7 +88,7 @@ export function TablaAsistencias({ est, setEst, filtro }: Props) {
   const numeros = useMemo(() => numerosPorBloque(hermanos), [hermanos]);
 
   return (
-    <table className="rejilla">
+    <table className="rejilla rejilla--asistencias">
       <thead>
         <tr>
           <th className="th-num" rowSpan={2}>
