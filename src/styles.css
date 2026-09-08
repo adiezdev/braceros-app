@@ -282,6 +282,30 @@ body { background: #E8E4DC; }
 .acc button:disabled:hover { border-color:transparent; color:var(--suave);
   background:none; }
 
+/* selección múltiple */
+.th-check { width:34px; }
+.th-check input, .td-check input { width:15px; height:15px; cursor:pointer;
+  accent-color:var(--burdeos); margin:0; vertical-align:middle; }
+.td-check { text-align:center; padding:0 2px !important; }
+
+/* barra de acciones en lote */
+.bulk { position:fixed; left:50%; bottom:14px; transform:translateX(-50%);
+  z-index:40; max-width:94vw; display:flex; flex-wrap:wrap; align-items:center;
+  gap:6px 10px; background:var(--burdeos); color:#fff; padding:8px 12px;
+  border-radius:8px; box-shadow:0 10px 26px rgba(0,0,0,.35); font-size:13px;
+  font-family:'Poppins',Arial,sans-serif; }
+.bulk__contador { font-weight:600; white-space:nowrap; }
+.bulk .btn { background:#fff; color:var(--burdeos); }
+.bulk .btn:hover { background:#F7EDEF; }
+.bulk__peligro { color:var(--rojo) !important; }
+.bulk label { display:flex; align-items:center; gap:5px; white-space:nowrap;
+  font-size:12px; }
+.bulk select { font:inherit; font-family:Arial,Helvetica,sans-serif; font-size:12px;
+  padding:3px 4px; border:none; border-radius:3px; color:#000; background:#fff; }
+.bulk__cerrar { display:flex; align-items:center; border:none; background:none;
+  color:#fff; cursor:pointer; padding:2px; border-radius:3px; }
+.bulk__cerrar:hover { background:rgba(255,255,255,.15); }
+
 /* volcado por foto */
 .tabla-asistencias__barra { display:flex; justify-content:flex-end;
   margin-bottom:8px; }
