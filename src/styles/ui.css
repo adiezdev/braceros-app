@@ -1,0 +1,99 @@
+/* Controles sueltos: botones, campos, avisos, marcas de celda, acciones
+ * de fila, selección múltiple y la barra de acciones en lote. */
+
+/* botones */
+.btn { display:inline-flex; align-items:center; gap:6px; font:inherit;
+  font-weight:500; padding:7px 12px; border:1px solid var(--burdeos);
+  background:var(--panel); color:var(--burdeos); cursor:pointer; border-radius:2px; }
+.btn:hover { background:#F7EDEF; }
+.btn--fuerte { background:var(--burdeos); color:#fff; }
+.btn--fuerte:hover { background:#5E151F; }
+.btn--fino { padding:5px 10px; font-size:13px; }
+
+/* campos y selects */
+.txt { font:inherit; width:100%; min-width:80px; border:1px solid transparent;
+  background:none; padding:3px 5px; color:inherit; }
+.txt:hover { border-color:var(--filete); }
+.txt:focus { border-color:var(--burdeos); background:#fff; outline:none; }
+.txt--corto { min-width:60px; }
+.sel { font:inherit; font-size:12px; border:1px solid var(--filete);
+  background:#fff; padding:3px 4px; color:var(--suave); }
+.sel--titulares { color:var(--verde); }
+.sel--honorarios { color:var(--laton); }
+
+/* avisos */
+.aviso { display:flex; align-items:center; gap:8px; padding:8px 11px;
+  margin-bottom:12px; border-left:3px solid var(--burdeos); background:var(--panel);
+  font-size:13px; }
+.aviso--error { border-left-color:var(--rojo); color:var(--rojo); }
+.aviso--ok { border-left-color:var(--verde); }
+.aviso__x { margin-left:auto; border:0; background:none; cursor:pointer;
+  color:inherit; display:flex; padding:2px; }
+
+/* botón icono compacto (cerrar ventanas, cabeceras) */
+.icon-btn { display:flex; align-items:center; border:1px solid transparent;
+  background:none; cursor:pointer; padding:4px; border-radius:4px; }
+.icon-btn--volcado { color:var(--suave); }
+.icon-btn--volcado:hover { border-color:var(--filete); color:var(--burdeos); }
+.icon-btn--bulk { color:#fff; }
+.icon-btn--bulk:hover { background:rgba(255,255,255,.15); }
+
+/* etiqueta de campo: texto encima, control debajo */
+.campo { display:flex; flex-direction:column; gap:3px; font-size:12px;
+  color:var(--suave); }
+
+/* celdas de marca: el botón de la casilla */
+.m { font:inherit; font-weight:600; width:34px; height:24px; cursor:pointer;
+  border:1px solid var(--filete); background:#fff; border-radius:2px; }
+.m--si { color:var(--verde); border-color:var(--verde); background:#F1F6F2; }
+.m--no { color:var(--rojo); border-color:var(--rojo); background:#FBF1F2; }
+.m--just { color:var(--laton); border-color:var(--laton); background:#FBF7EE; }
+.m--vacia { color:#C4BCB2; }
+.m:hover { border-color:var(--burdeos); }
+
+/* barra de acciones en lote */
+.bulk { position:fixed; left:50%; bottom:10px; transform:translateX(-50%);
+  z-index:40; width:max-content; max-width:96vw; display:flex; flex-wrap:nowrap;
+  align-items:center; gap:8px 12px; background:var(--burdeos); color:#fff;
+  padding:7px 12px; border-radius:8px; box-shadow:0 10px 26px rgba(0,0,0,.35);
+  font-size:13px; font-family:'Poppins',Arial,sans-serif; white-space:nowrap; }
+.bulk__contador { font-weight:600; white-space:nowrap; }
+.bulk .btn { background:#fff; color:var(--burdeos); }
+.bulk .btn:hover { background:#F7EDEF; }
+.bulk__peligro { color:var(--rojo) !important; }
+.bulk label { display:flex; align-items:center; gap:5px; white-space:nowrap;
+  font-size:12px; }
+.bulk .sel { font:inherit; font-size:12px; line-height:1; border:1px solid var(--filete);
+  background:#fff; padding:7px 4px; color:var(--tinta); cursor:pointer;
+  border-radius:2px; }
+.bulk .sel:hover { border-color:var(--burdeos); }
+.bulk .sel:focus-visible { outline:2px solid #fff; outline-offset:1px; }
+
+/* Diálogos propios (sustituyen a los alert/confirm/prompt nativos).
+   Se montan fuera de .app en main.tsx, así que llevan sus propios tokens. */
+.dialogo__capas { --papel:#E8E4DC; --panel:#FDFCFA; --burdeos:#7A1F2B;
+  --burdeos-claro:#9E4A57; --rojo:#C0392B; --verde:#2F5A3D; --laton:#A98432;
+  --tinta:#2A2622; --suave:#6B635C; --filete:#CFC8BD;
+  position:fixed; inset:0; z-index:60; display:flex; align-items:center;
+  justify-content:center; }
+.dialogo__fondo { position:absolute; inset:0; background:rgba(42,38,34,.5);
+  backdrop-filter:blur(1px); }
+.dialogo { position:relative; width:min(420px, calc(100vw - 32px));
+  background:var(--panel); border:1px solid var(--filete); border-radius:8px;
+  padding:24px 26px 22px; box-shadow:0 18px 48px rgba(0,0,0,.4); }
+.dialogo__mensaje { margin:0 0 20px; font-size:15px; line-height:1.5;
+  color:var(--tinta); font-family:'Poppins',Arial,sans-serif; }
+.dialogo__acciones { display:flex; justify-content:flex-end; gap:8px; }
+.dialogo .txt { width:100%; margin-bottom:20px; border:1px solid var(--filete);
+  background:#fff; padding:7px 9px; color:var(--tinta); border-radius:2px;
+  font-family:'Poppins',Arial,sans-serif; font-size:15px; }
+.dialogo .txt:hover { border-color:var(--suave); }
+.dialogo .txt:focus { border-color:var(--burdeos); outline:none; }
+.dialogo .btn { display:inline-flex; align-items:center; gap:6px; font:inherit;
+  font-weight:500; padding:7px 12px; border:1px solid var(--burdeos);
+  background:var(--panel); color:var(--burdeos); cursor:pointer; border-radius:2px;
+  font-family:'Poppins',Arial,sans-serif; font-size:13px; }
+.dialogo .btn:hover { background:#F7EDEF; }
+.dialogo .btn--fuerte { background:var(--burdeos); color:#fff; }
+.dialogo .btn--fuerte:hover { background:#5E151F; }
+.dialogo .btn:focus-visible { outline:2px solid var(--burdeos); outline-offset:1px; }

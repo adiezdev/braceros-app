@@ -1,15 +1,15 @@
 import type { Cuota, FilaLeida, Marca } from "../types";
+import { leerFoto } from "../services/foto.service";
 
 /**
  * Volcado por foto. La hoja impresa trae una tabla en la que cada fila es un
  * hermano y, a lo ancho, las columnas de asistencias de cada año y procesión
  * (V asistió · F falta · FJ falta justificada).
  *
- * A diferencia de la primera versión (OCR en el navegador con tesseract), aquí
- * la imagen se redimensiona en el navegador y se sube a la API del proyecto,
- * que es quien la manda a un modelo de IA (Gemini) con la clave guardada en el
- * servidor. La API devuelve por cada fila su Nº y su marca, y aquí se alinea
- * contra la lista de hermanos.
+ * La imagen se redimensiona en el navegador y se sube a la API del proyecto
+ * (services/foto.service.ts), que es quien la manda a un modelo de IA (Gemini)
+ * con la clave guardada en el servidor. La API devuelve por cada fila su Nº y
+ * su marca, y aquí se alinea contra la lista de hermanos.
  */
 
 /** Anchura máxima del lado largo tras redimensionar (controla el tamaño subido). */
@@ -22,12 +22,6 @@ export interface Alineable {
   /** Puesto impreso (1..N), coincide con el orden de la lista. */
   n: number;
   nombre: string;
-}
-
-/** Una fila tal y como la devuelve la API (antes de alinear). */
-interface FilaApi {
-  n: number;
-  marca: Marca | Cuota;
 }
 
 /** Devuelve la marca para la revisión: vacías en automático, el resto a repasar. */
@@ -67,32 +61,13 @@ function aBase64(file: File): Promise<string> {
   });
 }
 
-async function pedirFoto(imagenBase64: string, columna: number, tipo: "asistencia" | "cuotas"): Promise<FilaApi[]> {
-  let r: Response;
-  try {
-    r = await fetch("/api/foto", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imagenBase64, columna, tipo }),
-    });
-  } catch {
-    throw new Error("No llego al servidor. Comprueba que la base y la API estén levantadas.");
-  }
-  if (!r.ok) {
-    const cuerpo = (await r.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(cuerpo?.error ?? `El servidor respondió ${r.status}.`);
-  }
-  const datos = (await r.json()) as { filas?: FilaApi[] };
-  return datos.filas ?? [];
-}
-
 /**
  * Alinea las filas transcritas (con su Nº impreso) contra la lista de hermanos
  * y devuelve `FilaLeida` en el orden de la lista. Las filas cuyo Nº no existe
  * en la lista se descartan (no debería pasar con una hoja correcta).
  */
 export function alinear(
-  filas: FilaApi[],
+  filas: { n: number; marca: Marca | Cuota }[],
   lista: Alineable[]
 ): FilaLeida[] {
   const porN = new Map(lista.map((l) => [l.n, l]));
@@ -138,7 +113,7 @@ export async function leerFotos(
   const resultados = await Promise.allSettled(
     archivos.map(async (f) => {
       const base64 = await aBase64(f);
-      const filas = await pedirFoto(base64, opciones.indiceColumna, opciones.tipo);
+      const filas = await leerFoto(base64, opciones.indiceColumna, opciones.tipo);
       return alinear(filas, lista);
     })
   );

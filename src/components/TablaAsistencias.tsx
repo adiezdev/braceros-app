@@ -1,6 +1,7 @@
 import { Fragment, useMemo } from "react";
 
 import { ETIQUETA_BLOQUE, PROCESIONES } from "../constants";
+import { filtrarVisibles } from "../lib/filtrar";
 import { numerosPorBloque, siguienteMarca } from "../lib/modelo";
 import type { ClaveProcesion, Estado, Marca } from "../types";
 import { Celda } from "./Celda";
@@ -31,12 +32,7 @@ export function TablaAsistencias({ est, setEst, filtro }: Props) {
       }),
     }));
 
-  const visibles = useMemo(() => {
-    const q = filtro.trim().toLowerCase();
-    return hermanos
-      .map((h, i) => ({ h, i }))
-      .filter(({ h }) => !q || h.nombre.toLowerCase().includes(q));
-  }, [hermanos, filtro]);
+  const visibles = useMemo(() => filtrarVisibles(hermanos, filtro), [hermanos, filtro]);
 
   const columnas = 3 + aniosAsis.length * 2 + 1;
   const conRaya = !filtro.trim();
@@ -73,14 +69,12 @@ export function TablaAsistencias({ est, setEst, filtro }: Props) {
         </tr>
       </thead>
       <tbody>
-        {visibles.map(({ h, i }) => {
+        {visibles.map(({ hermano: h, indice: i }) => {
           const marcas = aniosAsis
             .flatMap((a) => [h.asis?.[a]?.exc ?? "", h.asis?.[a]?.sm ?? ""])
             .filter(Boolean);
           const vino = marcas.filter((m) => m === "V").length;
-          const pct = marcas.length
-            ? Math.round((vino / marcas.length) * 100)
-            : null;
+          const pct = marcas.length ? Math.round((vino / marcas.length) * 100) : null;
           return (
             <Fragment key={h.id}>
               <tr>

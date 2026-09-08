@@ -14,9 +14,12 @@
     "semilla": "esbuild pruebas/semilla.ts --bundle --format=esm --platform=node --outfile=node_modules/.cache/semilla.mjs --log-level=warning && node node_modules/.cache/semilla.mjs"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.102.8",
+    "axios": "^1.20.0",
     "lucide-react": "^0.454.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "sileo": "^0.1.5",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

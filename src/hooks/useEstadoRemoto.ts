@@ -1,10 +1,12 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { Estado } from "../types";
-import { api, ErrorApi } from "./api";
-import type { Operacion } from "./api";
-import { diferencias } from "./diff";
+import type { Estado, Operacion, RespuestaEstado } from "../types";
+import { notificar } from "../lib/toast";
+import { estadoService } from "../services/estado.service";
+import { operacionReemplazar, planificarOperaciones } from "../services/hermanos.service";
+import { ErrorApi } from "../services/http";
 
 /** Espera antes de mandar, para que escribir un nombre no sea una petición por letra. */
 const ESPERA_MS = 400;
@@ -26,10 +28,27 @@ export interface EstadoRemoto {
   recargar: () => void;
 }
 
-export function useEstado(): EstadoRemoto {
+/** Selecciona un mensaje corto para el toast según el tipo de operaciones. */
+function avisoDeGuardado(lote: Operacion[]): string | null {
+  const tipos = new Set(lote.map((o) => o.tipo));
+  if (tipos.has("reemplazar")) return null; // quien lo pide ya avisa
+  if (tipos.has("hermano.alta")) return "Hermano añadido a la lista";
+  if (tipos.has("hermano.baja")) return "Hermano quitado de la lista";
+  if (tipos.has("anio.alta") || tipos.has("anio.baja")) return "Años actualizados";
+  if (tipos.has("ajustes")) return "Cupo y cuota actualizados";
+  return lote.length ? "Cambios guardados" : null;
+}
+
+export function useEstadoRemoto(): EstadoRemoto {
   const [est, setEstLocal] = useState<Estado | null>(null);
   const [conexion, setConexion] = useState<Conexion>("cargando");
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["estado"],
+    queryFn: (): Promise<RespuestaEstado> => estadoService.obtenerEstado(),
+  });
 
   // El estado también vive en una ref porque el diff necesita el valor
   // anterior fuera del render. Hacerlo dentro del updater de useState no
@@ -43,20 +62,31 @@ export function useEstado(): EstadoRemoto {
   // necesita programar() para reintentar. Rompe el ciclo sin trucos de orden.
   const enviarRef = useRef<() => void>(() => {});
 
-  const cargar = useCallback(async () => {
-    try {
-      const r = await api.estado();
-      actual.current = r.estado;
-      version.current = r.version;
-      setEstLocal(r.estado);
-      setConexion("guardado");
+  /* --- lo que llega del servidor (TanStack) ------------------------- */
+  useEffect(() => {
+    const datos = query.data;
+    if (!datos) return;
+    // Solo se aplica si es una versión nueva: con la misma, no hay que
+    // tocar nada (otro cliente no ha cambiado nada y aquí seguiría vivo
+    // lo que este navegador estuviera escribiendo).
+    if (datos.version !== version.current) {
+      actual.current = datos.estado;
+      version.current = datos.version;
+      setEstLocal(datos.estado);
+      setConexion((c) => (c === "guardando" ? c : "guardado"));
       setError(null);
-    } catch (e) {
-      setConexion("error");
-      setError(e instanceof ErrorApi ? e.message : "No he podido cargar los datos.");
     }
-  }, []);
+  }, [query.data]);
 
+  useEffect(() => {
+    if (query.isError) {
+      const mensaje = query.error instanceof ErrorApi ? query.error.message : "No he podido cargar los datos.";
+      setConexion("error");
+      setError(mensaje);
+    }
+  }, [query.isError, query.error]);
+
+  /* --- motor de escrituras: cola + debounce + reintento ------------- */
   const programar = useCallback(() => {
     if (temporizador.current !== null) window.clearTimeout(temporizador.current);
     temporizador.current = window.setTimeout(() => {
@@ -74,9 +104,11 @@ export function useEstado(): EstadoRemoto {
     setConexion("guardando");
 
     try {
-      const r = await api.cambios(lote);
-      version.current = r.version;
+      const respuesta = await estadoService.guardarCambios(lote);
+      version.current = respuesta.version;
       setError(null);
+      const aviso = avisoDeGuardado(lote);
+      if (aviso) notificar(aviso, "ok");
       setConexion(cola.current.length ? "guardando" : "guardado");
     } catch (e) {
       // Vuelven al principio de la cola para reintentar, sin perder el orden
@@ -84,6 +116,7 @@ export function useEstado(): EstadoRemoto {
       cola.current = [...lote, ...cola.current];
       setConexion("error");
       setError(e instanceof ErrorApi ? e.message : "No he podido guardar.");
+      notificar("No se ha podido guardar", "error", e instanceof Error ? e.message : undefined);
     } finally {
       enviando.current = false;
       if (cola.current.length) programar();
@@ -115,7 +148,7 @@ export function useEstado(): EstadoRemoto {
 
       actual.current = siguiente;
       setEstLocal(siguiente);
-      encolar(diferencias(previo, siguiente));
+      encolar(planificarOperaciones(previo, siguiente));
     },
     [encolar]
   );
@@ -125,7 +158,7 @@ export function useEstado(): EstadoRemoto {
       actual.current = nuevo;
       setEstLocal(nuevo);
       // Lo pendiente ya no vale: esto lo sobrescribe todo igualmente.
-      cola.current = [{ tipo: "reemplazar", estado: nuevo }];
+      cola.current = [operacionReemplazar(nuevo)];
       setConexion("guardando");
       programar();
     },
@@ -135,13 +168,8 @@ export function useEstado(): EstadoRemoto {
   const recargar = useCallback(() => {
     cola.current = [];
     setConexion("cargando");
-    void cargar();
-  }, [cargar]);
-
-  /* --- carga inicial ------------------------------------------------ */
-  useEffect(() => {
-    void cargar();
-  }, [cargar]);
+    void queryClient.invalidateQueries({ queryKey: ["estado"] });
+  }, [queryClient]);
 
   /* --- sondeo de cambios ajenos ------------------------------------- */
   useEffect(() => {
@@ -151,10 +179,10 @@ export function useEstado(): EstadoRemoto {
       if (cola.current.length || enviando.current) return;
       if (document.hidden || !actual.current) return;
 
-      void api
-        .version()
+      void estadoService
+        .obtenerVersion()
         .then(({ version: v }) => {
-          if (v !== version.current) return cargar();
+          if (v !== version.current) void queryClient.refetchQueries({ queryKey: ["estado"] });
         })
         .catch(() => {
           /* el sondeo es best-effort: si falla, ya avisará el guardado */
@@ -162,7 +190,7 @@ export function useEstado(): EstadoRemoto {
     }, SONDEO_MS);
 
     return () => window.clearInterval(id);
-  }, [cargar]);
+  }, [queryClient]);
 
   /* --- no perder lo pendiente al cerrar ------------------------------ */
   useEffect(() => {

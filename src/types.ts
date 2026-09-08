@@ -8,6 +8,28 @@ export type Cuota = "" | "S" | "N";
 
 export type ClaveProcesion = "exc" | "sm";
 
+/**
+ * Lo que el navegador le manda a la API. En vez de enviar la lista entera
+ * cada vez que tocas una celda, se manda solo lo que cambió. Así dos personas
+ * marcando cosas distintas a la vez no se pisan: cada una escribe sus filas.
+ */
+export type Operacion =
+  | { tipo: "ajustes"; cupo: number; cuota: number }
+  | { tipo: "anio.alta"; cual: "cuotas" | "asistencias"; anio: number }
+  | { tipo: "anio.baja"; cual: "cuotas" | "asistencias"; anio: number }
+  | { tipo: "hermano.alta"; id: string; nombre: string; bloque: Bloque; telefono: string; notas: string }
+  | { tipo: "hermano.baja"; id: string }
+  | { tipo: "hermano.campos"; id: string; nombre?: string; bloque?: Bloque; telefono?: string; notas?: string }
+  | { tipo: "hermano.orden"; ids: string[] }
+  | { tipo: "cuota"; hermanoId: string; anio: number; estado: Cuota }
+  | { tipo: "asistencia"; hermanoId: string; anio: number; procesion: ClaveProcesion; marca: Marca }
+  | { tipo: "reemplazar"; estado: Estado };
+
+export interface RespuestaEstado {
+  version: number;
+  estado: Estado;
+}
+
 export interface Asistencia {
   exc: Marca;
   sm: Marca;

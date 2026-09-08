@@ -1,6 +1,5 @@
 import { PROCESIONES } from "../constants";
-import type { Estado, Hermano } from "../types";
-import type { Operacion } from "./api";
+import type { Estado, Hermano, Operacion } from "../types";
 
 const VACIO: Pick<Hermano, "cuotas" | "asis"> = { cuotas: {}, asis: {} };
 

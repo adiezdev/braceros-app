@@ -1,0 +1,22 @@
+/* ------------------------------------------------------------------ *
+ * Tokens y base
+ * Papel gris-arena, burdeos para la estructura, rojo para faltas e
+ * impagos, verde para asistencias y latón para un solo detalle: la
+ * raya que marca el cierre del cupo.
+ * ------------------------------------------------------------------ */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #E8E4DC; }
+
+.app, .solo-impresion {
+  --papel:#E8E4DC; --panel:#FDFCFA; --burdeos:#7A1F2B;
+  --burdeos-claro:#9E4A57; --rojo:#C0392B; --verde:#2F5A3D; --laton:#A98432;
+  --tinta:#2A2622; --suave:#6B635C; --filete:#CFC8BD;
+}
+
+.app *:focus-visible { outline:2px solid var(--burdeos); outline-offset:1px; }
+
+@media (prefers-reduced-motion:reduce) {
+  * { transition:none !important; animation:none !important; }
+}

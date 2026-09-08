@@ -1,0 +1,12 @@
+@import "./tokens.css";
+@import "./base.css";
+@import "./ui.css";
+@import "./tablas.css";
+@import "./impresion.css";
+@import "./volcado.css";
+
+/* ------------------------------------------------------------------ *
+ * Hoja maestra. Las fuentes se cargan desde index.html.
+ * Orden: tokens → base (estructura) → ui (controles) → tablas →
+ * impresión → volcado por foto.
+ * ------------------------------------------------------------------ */

@@ -1,11 +1,13 @@
+import { useMemo } from "react";
+
 import { BLOQUES, ENTIDAD, ETIQUETA_BLOQUE, PROCESIONES } from "../constants";
 import escudo from "../data/escudosm.png";
 import { numerosPorBloque } from "../lib/modelo";
 import type { CfgImpresion, Estado, Hermano } from "../types";
 
 interface Fila {
-  h: Hermano | null;
-  n: number;
+  hermano: Hermano | null;
+  numero: number;
 }
 
 interface Props {
@@ -14,8 +16,6 @@ interface Props {
   /** true = impresión, false = previsualización (listado continuo en pantalla) */
   paraImpresion?: boolean;
 }
-
-import { useMemo } from "react";
 
 export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
   const { hermanos } = est;
@@ -42,21 +42,24 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
           ...aniosNuevos.map((a) => `Cuota ${a}`),
         ];
 
-  const valores = (h: Hermano): string[] =>
+  const valores = (hermano: Hermano): string[] =>
     tipo === "asistencias"
       ? [
-          h.asis?.[anioAnterior]?.exc ?? "",
-          h.asis?.[anioAnterior]?.sm ?? "",
+          hermano.asis?.[anioAnterior]?.exc ?? "",
+          hermano.asis?.[anioAnterior]?.sm ?? "",
           ...aniosNuevos.flatMap((a) => [
-            h.asis?.[a]?.exc ?? "",
-            h.asis?.[a]?.sm ?? "",
+            hermano.asis?.[a]?.exc ?? "",
+            hermano.asis?.[a]?.sm ?? "",
           ]),
         ]
-      : [h.cuotas?.[anioAnterior] ?? "", ...aniosNuevos.map((a) => h.cuotas?.[a] ?? "")];
+      : [
+          hermano.cuotas?.[anioAnterior] ?? "",
+          ...aniosNuevos.map((a) => hermano.cuotas?.[a] ?? ""),
+        ];
 
   /** Color de la casilla según el estado: verde = sí/vino, rojo = no/falta,
       ámbar = falta justificada. */
-  const claseCelda = (v: string): string =>
+  const claseCeldaImpresion = (v: string): string =>
     v === "S" || v === "V"
       ? "num imp--si"
       : v === "N" || v === "F"
@@ -70,112 +73,83 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
       <img className="impresion__escudo" src={escudo} alt="Escudo de la agrupación" />
       <h1 className="impresion__titulo">{ENTIDAD}</h1>
       <p className="impresion__sub">
-        {tipo === "asistencias"
-          ? `Asistencia a las procesiones`
-          : `Cuotas anuales`}
+        {tipo === "asistencias" ? `Asistencia a las procesiones` : `Cuotas anuales`}
       </p>
     </section>
   );
+
+  const filasPorBloque = (bloque: (typeof BLOQUES)[number]): Fila[] =>
+    hermanos
+      .map((hermano, indice) => ({ hermano, numero: numeros[indice] }))
+      .filter(({ hermano }) => hermano.bloque === bloque);
+
+  const filasConBlancos = (bloque: (typeof BLOQUES)[number], conBlancos: boolean): Fila[] => {
+    const filas = filasPorBloque(bloque);
+    if (conBlancos && bloque === "SUPLENTES") {
+      for (let k = 0; k < blancos; k++) {
+        filas.push({ hermano: null, numero: numeros.length + k + 1 });
+      }
+    }
+    return filas;
+  };
+
+  const renderBloque = (bloque: (typeof BLOQUES)[number], conBlancos: boolean) => {
+    const total = filasPorBloque(bloque).length;
+    const filas = filasConBlancos(bloque, conBlancos);
+    return (
+      <section key={bloque} className="impresion__bloque">
+        <h2>
+          {ETIQUETA_BLOQUE[bloque]} <span>({total})</span>
+        </h2>
+        <table>
+          <thead>
+            <tr>
+              {cabecera.map((c) => (
+                <th key={c}>{c}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filas.map(({ hermano, numero }, k) => (
+              <tr key={hermano?.id ?? k}>
+                <td className="num">{numero}</td>
+                {hermano ? (
+                  <>
+                    <td>{hermano.nombre}</td>
+                    {valores(hermano).map((v, j) => (
+                      <td key={j} className={claseCeldaImpresion(v)}>
+                        {v}
+                      </td>
+                    ))}
+                  </>
+                ) : (
+                  cabecera.slice(1).map((c) => <td key={c}>&nbsp;</td>)
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    );
+  };
 
   /* Previsualización: listado continuo, cada bloque en su tabla. */
   if (!paraImpresion) {
     return (
       <div className="impresion impresion--previa">
         {portada}
-        {BLOQUES.map((bloque) => {
-          const filas = hermanos
-            .map((h, i) => ({ h, n: numeros[i] }))
-            .filter(({ h }) => h.bloque === bloque);
-          return (
-            <section key={bloque} className="impresion__bloque">
-              <h2>
-                {ETIQUETA_BLOQUE[bloque]} <span>({filas.length})</span>
-              </h2>
-              <table>
-                <thead>
-                  <tr>
-                    {cabecera.map((c) => (
-                      <th key={c}>{c}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filas.map(({ h, n }) => (
-                    <tr key={h.id}>
-                      <td className="num">{n}</td>
-                      <td>{h.nombre}</td>
-                      {valores(h).map((v, k) => (
-                        <td key={k} className={claseCelda(v)}>
-                          {v}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
-          );
-        })}
+        {BLOQUES.map((bloque) => renderBloque(bloque, false))}
       </div>
     );
   }
 
-  /* Impresión: los bloques seguidos, sin forzar saltos. Cada bloque es su
-     propia tabla y las tablas se parten por filas cuando la página se
-     llena: la cabecera de la tabla se repite con `table-header-group` y
-     ninguna fila se corta a mitad. Los bloques así van uno debajo del
-     otro rellenando la hoja, sin huecos. */
+  /* Impresión: los bloques seguidos, sin forzar saltos; cada bloque es su
+     propia tabla y se parte por filas al llenar la hoja, con la cabecera
+     repetida. */
   return (
     <div className="impresion impresion--print">
       {portada}
-      {BLOQUES.map((bloque) => {
-        const filas: Fila[] = hermanos
-          .map((h, i) => ({ h, n: numeros[i] }))
-          .filter(({ h }) => h.bloque === bloque);
-        const total = filas.length;
-        if (bloque === "SUPLENTES") {
-          for (let k = 0; k < blancos; k++) {
-            filas.push({ h: null, n: numeros.length + k + 1 });
-          }
-        }
-        return (
-          <section key={bloque} className="impresion__bloque">
-            <h2>
-              {ETIQUETA_BLOQUE[bloque]} <span>({total})</span>
-            </h2>
-            <table>
-              <thead>
-                <tr>
-                  {cabecera.map((c) => (
-                    <th key={c}>{c}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filas.map(({ h, n }, k) => (
-                  <tr key={k}>
-                    <td className="num">{n}</td>
-                    {h ? (
-                      <>
-                        <td>{h.nombre}</td>
-                        {valores(h).map((v, j) => (
-                          <td key={j} className={claseCelda(v)}>
-                            {v}
-                          </td>
-                        ))}
-                      </>
-                    ) : (
-                      cabecera.slice(1).map((c) => (
-                        <td key={c}>&nbsp;</td>
-                      ))
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-        );
-      })}
+      {BLOQUES.map((bloque) => renderBloque(bloque, true))}
     </div>
   );
 }

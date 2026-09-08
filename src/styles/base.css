@@ -1,0 +1,83 @@
+/* Estructura de la página: cabecera, resumen, pestañas, barra de
+ * herramientas, lienzo, pie e indicador de guardado. */
+
+.app { background:var(--papel); color:var(--tinta); min-height:100vh;
+  padding:20px 22px 40px; font-family:'Poppins',system-ui,Arial,sans-serif;
+  font-size:14px; font-variant-numeric:tabular-nums; }
+
+/* cabecera */
+.cabecera { display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;
+  justify-content:space-between; border-bottom:2px solid var(--burdeos);
+  padding-bottom:12px; margin-bottom:16px; }
+.cabecera__marca h1 { font-family:'Poppins',Arial,sans-serif; font-weight:700;
+  font-size:26px; line-height:1.1; margin:0; letter-spacing:-.01em; }
+.cabecera__marca p { margin:3px 0 0; color:var(--suave); font-size:13px; max-width:62ch; }
+.cabecera__acciones { display:flex; gap:8px; }
+
+/* resumen */
+.resumen { display:flex; flex-wrap:wrap; gap:20px 26px; align-items:flex-start;
+  background:var(--panel); border:1px solid var(--filete); padding:14px 16px;
+  margin-bottom:16px; }
+.resumen__cifra { display:flex; flex-direction:column; }
+.resumen__cifra strong { font-family:'Poppins',Arial,sans-serif; font-size:34px; line-height:.95;
+  font-weight:600; }
+.resumen__cifra span { color:var(--suave); font-size:12px; }
+.resumen__bloques { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.pastilla { font-size:12px; padding:3px 8px; border:1px solid var(--filete);
+  border-radius:2px; }
+.pastilla--honorarios { border-color:var(--laton); }
+.pastilla--titulares { border-color:var(--verde); }
+.pastilla--suplentes { border-color:var(--burdeos-claro); }
+.resumen .aviso { flex-basis:100%; margin:0; }
+
+/* pestañas */
+.pestanas { display:flex; gap:2px; border-bottom:1px solid var(--filete); }
+.pest { font:inherit; font-weight:500; padding:8px 14px; border:0;
+  background:none; cursor:pointer; color:var(--suave); border-bottom:2px solid transparent; }
+.pest:hover { color:var(--tinta); }
+.pest--activa { color:var(--burdeos); border-bottom-color:var(--burdeos); }
+
+/* barra de herramientas */
+.barra { display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+  padding:10px 0; }
+.buscador { display:inline-flex; align-items:center; gap:6px; background:var(--panel);
+  border:1px solid var(--filete); padding:5px 9px; color:var(--suave); }
+.buscador input { font:inherit; border:0; background:none; outline:none;
+  color:var(--tinta); width:190px; }
+.anios { display:flex; gap:5px; flex-wrap:wrap; }
+.anio-x { display:inline-flex; align-items:center; gap:4px; font:inherit;
+  font-size:12px; padding:3px 7px; border:1px solid var(--filete);
+  background:var(--panel); cursor:pointer; color:var(--suave); }
+.anio-x:hover { border-color:var(--rojo); color:var(--rojo); }
+.nota-filtro { font-size:12px; color:var(--suave); font-style:italic; }
+
+/* vacío */
+.vacio { padding:46px 20px; text-align:center; }
+.vacio p { margin:0 0 4px; font-family:'Poppins',Arial,sans-serif; font-size:20px; }
+.vacio__ayuda { font-family:'Poppins',Arial,sans-serif !important;
+  font-size:14px !important; color:var(--suave); }
+.vacio__acciones { display:flex; gap:8px; justify-content:center; margin-top:16px; }
+
+/* pie fijo con el indicador de guardado */
+.pie { margin-top:14px; font-size:12px; color:var(--suave);
+  display:flex; flex-wrap:wrap; gap:4px 14px; align-items:baseline; }
+.estado { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+.estado::before { content:''; width:7px; height:7px; border-radius:50%;
+  background:currentColor; flex:none; }
+.estado--guardado  { color:#2f6b45; }
+.estado--guardando { color:var(--suave); }
+.estado--cargando  { color:var(--suave); }
+.estado--error     { color:#a8271c; font-weight:600; }
+
+/* pantalla previa a que lleguen los datos del servidor */
+.arranque { max-width:52ch; margin:18vh auto; padding:0 20px; text-align:center; }
+.arranque h1 { font-family:'Poppins',Arial,sans-serif; font-size:24px; margin:0 0 10px; }
+.arranque p { color:var(--suave); margin:0 0 6px; }
+.arranque__error { color:#a8271c; font-weight:600; }
+.arranque__ayuda { font-size:13px; }
+.arranque .btn { margin-top:14px; }
+
+@media (max-width:760px) {
+  .cabecera { align-items:flex-start; }
+  .buscador input { width:130px; }
+}

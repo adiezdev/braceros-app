@@ -1,6 +1,8 @@
 import { Plus, Printer, X } from "lucide-react";
 import { createPortal } from "react-dom";
 
+import { Button } from "./ui/Button";
+import { Campo } from "./ui/Campo";
 import type { CfgImpresion, Estado, TipoListado } from "../types";
 import { VistaImpresion } from "./VistaImpresion";
 
@@ -15,9 +17,6 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
    * Se imprime la propia página: la CSS de @media print deja fuera la
    * interfaz (.app a display:none) y deja visible solo este bloque, que
    * está portalizado fuera de .app para que ese display:none no lo recoja.
-   * Imprimir la página directamente es lo que soportan todos los navegadores
-   * de forma fiable; el iframe de react-to-print salía en blanco (sobre todo
-   * en Safari) porque los enlaces relativos no se resuelven dentro del iframe.
    */
   const imprimir = () => {
     const tituloAnterior = document.title;
@@ -30,8 +29,6 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
       { once: true }
     );
     window.print();
-    // En Safari window.print no bloquea: es afterprint quien restaura.
-    // En otros navegadores, con el diálogo cerrado ya se ha restaurado ahí.
   };
 
   const anadirAnioNuevo = () =>
@@ -50,17 +47,13 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
     }));
 
   const quitarAnioNuevo = (i: number) =>
-    setCfg((c) => ({
-      ...c,
-      aniosNuevos: c.aniosNuevos.filter((_, j) => j !== i),
-    }));
+    setCfg((c) => ({ ...c, aniosNuevos: c.aniosNuevos.filter((_, j) => j !== i) }));
 
   return (
     <>
       <div className="panel-impr">
         <div className="panel-impr__cfg">
-          <label>
-            Qué listado
+          <Campo etiqueta="Qué listado">
             <select
               value={cfg.tipo}
               onChange={(e) =>
@@ -70,10 +63,9 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
               <option value="asistencias">Asistencias</option>
               <option value="cuotas">Cuotas</option>
             </select>
-          </label>
+          </Campo>
 
-          <label>
-            Año que se muestra
+          <Campo etiqueta="Año que se muestra">
             <input
               type="number"
               value={cfg.anioAnterior}
@@ -81,10 +73,9 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
                 setCfg((c) => ({ ...c, anioAnterior: Number(e.target.value) }))
               }
             />
-          </label>
+          </Campo>
 
-          <label>
-            Años en blanco
+          <Campo etiqueta="Años en blanco">
             <span className="anios-blancos">
               {cfg.aniosNuevos.map((a, i) => (
                 <span key={i} className="anios-blancos__fila">
@@ -103,14 +94,13 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
                   </button>
                 </span>
               ))}
-              <button type="button" className="btn btn--fino" onClick={anadirAnioNuevo}>
+              <Button fino onClick={anadirAnioNuevo}>
                 <Plus size={13} /> Añadir
-              </button>
+              </Button>
             </span>
-          </label>
+          </Campo>
 
-          <label>
-            Filas vacías al final
+          <Campo etiqueta="Filas vacías al final">
             <input
               type="number"
               min={0}
@@ -123,11 +113,11 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
                 }))
               }
             />
-          </label>
+          </Campo>
 
-          <button className="btn btn--fuerte" onClick={imprimir}>
+          <Button fuerte onClick={imprimir}>
             <Printer size={15} /> Imprimir o guardar en PDF
-          </button>
+          </Button>
         </div>
 
         <p className="panel-impr__nota">

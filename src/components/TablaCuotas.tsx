@@ -1,6 +1,7 @@
 import { Fragment, useMemo } from "react";
 
 import { ETIQUETA_BLOQUE } from "../constants";
+import { filtrarVisibles } from "../lib/filtrar";
 import { numerosPorBloque, siguienteCuota } from "../lib/modelo";
 import type { Estado } from "../types";
 import { Celda } from "./Celda";
@@ -25,12 +26,7 @@ export function TablaCuotas({ est, setEst, filtro }: Props) {
       ),
     }));
 
-  const visibles = useMemo(() => {
-    const q = filtro.trim().toLowerCase();
-    return hermanos
-      .map((h, i) => ({ h, i }))
-      .filter(({ h }) => !q || h.nombre.toLowerCase().includes(q));
-  }, [hermanos, filtro]);
+  const visibles = useMemo(() => filtrarVisibles(hermanos, filtro), [hermanos, filtro]);
 
   const columnas = 3 + aniosCuotas.length + 2;
   const conRaya = !filtro.trim();
@@ -53,7 +49,7 @@ export function TablaCuotas({ est, setEst, filtro }: Props) {
         </tr>
       </thead>
       <tbody>
-        {visibles.map(({ h, i }) => {
+        {visibles.map(({ hermano: h, indice: i }) => {
           const pagadas = aniosCuotas.filter((a) => h.cuotas?.[a] === "S").length;
           return (
             <Fragment key={h.id}>

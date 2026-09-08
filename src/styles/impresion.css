@@ -1,0 +1,81 @@
+/* Impresión: panel de configuración, años en blanco, previsualización y
+ * el documento imprimible (portada + bloques). */
+
+.panel-impr { padding:14px 16px; }
+.panel-impr__cfg { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
+.panel-impr__cfg label { display:flex; flex-direction:column; gap:3px;
+  font-size:12px; color:var(--suave); }
+.panel-impr__cfg input, .panel-impr__cfg select { font:inherit;
+  border:1px solid var(--filete); padding:5px 7px; background:#fff;
+  color:var(--tinta); width:150px; }
+.panel-impr__nota { color:var(--suave); font-size:13px; max-width:70ch;
+  margin:12px 0 0; }
+.anios-blancos { display:flex; flex-direction:column; gap:4px; min-width:150px; }
+.anios-blancos__fila { display:flex; gap:4px; }
+.anios-blancos__fila input { width:150px; }
+.anios-blancos__x { border:1px solid var(--filete); background:#fff;
+  color:var(--suave); padding:0 6px; cursor:pointer; }
+.anios-blancos__x:hover { color:var(--tinta); }
+.previa { margin-top:16px; border-top:1px solid var(--filete); padding-top:16px;
+  max-height:46vh; overflow:auto; background:#fff; }
+
+/* documento imprimible */
+.impresion { padding:8px 14px; color:#000; }
+.impresion__titulo { font-family:'Poppins',Arial,sans-serif; font-size:19px; text-align:center;
+  margin:0 0 2px; text-transform:uppercase; letter-spacing:.02em; }
+.impresion__sub { text-align:center; font-size:11px; color:#555; margin:0 0 14px; }
+
+/* portada */
+.impresion__portada { display:flex; flex-direction:column; align-items:center;
+  justify-content:center; text-align:center; padding:30px 20px; }
+.impresion__portada .impresion__titulo { font-size:28px; margin-top:12px; }
+.impresion__portada .impresion__sub { font-size:13px; margin-top:6px; }
+.impresion__escudo { width:180px; height:auto; }
+
+/* previsualización: listado continuo, scrollable */
+.impresion--previa { background:#fff; width:100%; }
+.impresion--previa .impresion__portada { min-height:46vh; }
+.impresion--previa .impresion__bloque { margin-bottom:18px; }
+.impresion--previa .impresion__bloque h2 { font-family:'Poppins',Arial,sans-serif;
+  font-size:14px; color:var(--burdeos); margin:10px 0 4px; }
+.impresion--previa .impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
+
+/* impresión: portada a toda la primera hoja, luego los bloques fluyen y
+   las tablas se parten por filas al llenar cada hoja (la cabecera se repite).
+   La portada ocupa el área imprimible A4 (297mm − 14mm de margen arriba y
+   abajo = 269mm) y su contenido queda centrado en vertical gracias a flex. */
+.impresion--print { padding: 0; }
+.impresion--print .impresion__portada { height: 269mm; page-break-after: always;
+  break-after: page; }
+.impresion--print .impresion__bloque h2 { font-family:'Poppins',Arial,sans-serif;
+  font-size:14px; color:var(--burdeos); margin:0 0 4px; }
+.impresion--print .impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
+
+.impresion table { border-collapse:collapse; width:100%; font-size:13px;
+  font-family:Arial,Helvetica,sans-serif; }
+.impresion th { background:#E4E0DA; border:1px solid #999; padding:3px 5px;
+  text-align:center; font-weight:600; }
+.impresion th:nth-child(2) { text-align:left; }
+.impresion td { border:1px solid #B8B2AA; padding:2px 5px; height:17px; }
+.impresion td.num { text-align:center; color:#000; }
+/* nombres más grandes; las casillas de estado ocupan poco */
+.impresion td:nth-child(2) { font-size: 13px; }
+.impresion th:nth-child(n+3), .impresion td:nth-child(n+3) { width:23mm; }
+/* color de la casilla según el estado: verde = sí/vino, rojo = no/falta,
+   ámbar = falta justificada */
+.impresion td.imp--si { background:#DFF0D8; }
+.impresion td.imp--no { background:#F5D6D1; }
+.impresion td.imp--just { background:#FBE9C9; }
+.impresion td.imp--si, .impresion td.imp--no, .impresion td.imp--just { color:#000; }
+
+.solo-impresion { position:fixed; left:-99999px; top:0; width:210mm; background:#fff; }
+
+@media print {
+  html, body { margin:0 !important; padding:0 !important; }
+  body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .app { display:none !important; }
+  .solo-impresion { position:static; left:auto; top:auto; width:auto; }
+  .impresion thead { display:table-header-group; }
+  .impresion tr { break-inside:avoid; }
+  @page { size:A4; margin:14mm; }
+}

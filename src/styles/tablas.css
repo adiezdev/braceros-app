@@ -1,0 +1,68 @@
+/* La rejilla principal: sticky de cabeceras, edición en línea del número,
+ * columna de selección múltiple y la raya de latón del cupo. */
+
+.lienzo { background:var(--panel); border:1px solid var(--filete); overflow:auto;
+  max-height:70vh; }
+.rejilla { border-collapse:separate; border-spacing:0; width:100%; font-size:13px; }
+.rejilla thead th { position:sticky; top:0; z-index:2; background:var(--burdeos);
+  color:#fff; font-weight:600; text-align:left; padding:6px 8px; font-size:12px;
+  white-space:nowrap; }
+.rejilla thead tr:nth-child(2) th { top:26px; background:var(--burdeos-claro); }
+.rejilla th.th-anio { text-align:center; border-left:1px solid rgba(255,255,255,.35); }
+.rejilla th.th-marca { text-align:center; }
+.rejilla th.th-num { width:44px; text-align:right; }
+.rejilla th.th-check { width:34px; }
+.rejilla th.th-bloque { width:100px; }
+.rejilla th.th-tel { width:110px; }
+.rejilla th.th-acc { width:130px; }
+.rejilla tbody td { padding:2px 8px; border-bottom:1px solid #EFEAE2;
+  vertical-align:middle; }
+.rejilla tbody tr:hover td { background:#FAF7F1; }
+
+.num { text-align:right; color:var(--suave); font-variant-numeric:tabular-nums; }
+.num-enlace { font:inherit; font-variant-numeric:tabular-nums; color:inherit;
+  background:none; border:1px solid transparent; border-radius:2px; padding:2px 4px;
+  text-align:right; cursor:pointer; }
+.num-enlace:hover:not(:disabled) { border-color:var(--filete); color:var(--burdeos); background:#fff; }
+.num-enlace:focus-visible { outline:none; border-color:var(--burdeos); }
+.num-edit { width:44px; font:inherit; font-variant-numeric:tabular-nums; text-align:right;
+  padding:2px 4px; border:1px solid var(--burdeos); border-radius:2px; background:#fff; }
+.input-ayuda { display:inline-block; margin-left:8px; color:var(--suave); font-size:12px; }
+
+.nombre { white-space:nowrap; }
+.nombre em { color:var(--suave); }
+.bloque { font-size:12px; color:var(--suave); white-space:nowrap; }
+.bloque--titulares { color:var(--verde); }
+.bloque--honorarios { color:var(--laton); }
+.cifra { text-align:right; white-space:nowrap; }
+.cifra--debe { color:var(--rojo); }
+
+.td-marca { text-align:center; padding:2px 4px !important; }
+
+/* acciones de fila */
+.acc { display:flex; gap:2px; }
+.acc button { border:1px solid transparent; background:none; cursor:pointer;
+  color:var(--suave); display:flex; padding:3px; border-radius:2px; }
+.acc button:hover { border-color:var(--filete); color:var(--burdeos); background:#fff; }
+.acc--peligro:hover { color:var(--rojo) !important; border-color:var(--rojo) !important; }
+.acc button:disabled { opacity:.3; cursor:not-allowed; }
+.acc button:disabled:hover { border-color:transparent; color:var(--suave);
+  background:none; }
+
+/* columna de selección múltiple */
+.th-check input, .td-check input { width:15px; height:15px; cursor:pointer;
+  accent-color:var(--burdeos); margin:0; vertical-align:middle; }
+.td-check { text-align:center; padding:0 2px !important; }
+
+/* la raya de latón: el cierre del cupo */
+.cupo td { padding:0 !important; border:0 !important; position:relative;
+  height:20px; background:linear-gradient(var(--panel),var(--panel)); }
+.cupo td::before { content:''; position:absolute; left:0; right:0; top:50%;
+  border-top:2px solid var(--laton); }
+.cupo__texto { position:relative; display:inline-block; margin-left:12px;
+  background:var(--panel); padding:0 8px; font-size:11px; letter-spacing:.06em;
+  color:var(--laton); font-weight:600; top:3px; }
+
+@media (max-width:760px) {
+  .rejilla th.th-acc, .acc { min-width:120px; }
+}
