@@ -70,8 +70,6 @@
   .acc button { min-width:40px; min-height:40px; }
   .rejilla--hermanos { min-width:0; width:100%; }
   .td-nombre { min-width: 115vw; }
-  .td-nombre .txt { white-space:normal; }
-  .rejilla--hermanos .th-tel, .rejilla--hermanos .th-obs,
-  .rejilla--hermanos .td-tel, .rejilla--hermanos .td-obs { display:none; }
+  .td-nombre .txt { white-space:normal; } 
   .rejilla--hermanos .th-bloque { width:70px; }
 }
