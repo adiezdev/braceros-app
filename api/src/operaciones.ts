@@ -84,36 +84,81 @@ async function aplicarOrden(c: pg.PoolClient, ids: string[]): Promise<void> {
   );
 
   // Cualquiera que no viniera en la lista se va al final, para que no choque
-  // con los puestos recién asignados.
+  // con los puestos recién asignados. Los archivados (puesto NULL) no entran.
   await c.query(
     `UPDATE hermano h SET puesto = $2 + sub.rn
        FROM (SELECT id, row_number() OVER (ORDER BY puesto, id) AS rn
-               FROM hermano WHERE NOT (id = ANY($1::text[]))) sub
+               FROM hermano
+              WHERE NOT (id = ANY($1::text[]))
+                AND archivado = false) sub
       WHERE h.id = sub.id`,
     [ids, ids.length]
   );
 }
 
-/** Borra todo y vuelve a escribirlo. Para "Cargar Excel" y "Restaurar lista". */
+/**
+ * Borra todo y vuelve a escribirlo. Para "Cargar Excel" y "Restaurar lista".
+ * Los archivados se conservan tal cual (con su Nº, bloque y marcas): solo se
+ * reconstruye la lista activa.
+ */
 async function reemplazarTodo(c: pg.PoolClient, e: Estado): Promise<void> {
   if (!Array.isArray(e?.hermanos)) throw new ErrorPeticion("estado sin hermanos");
   if (e.hermanos.length > 5000) throw new ErrorPeticion("demasiados hermanos");
 
-  // El orden importa: las hijas cuelgan de hermano y de los años.
+  // El estado entrante es la fuente de verdad completa: los archivados que no
+  // vengan aquí ya no existen. Borramos todo y reinsertamos hermanos y
+  // archivos, así el resultado es exactamente el estado pedido.
   await c.query("DELETE FROM asistencia");
   await c.query("DELETE FROM cuota");
-  await c.query("DELETE FROM evento");
   await c.query("DELETE FROM hermano");
-  await c.query("DELETE FROM anio_cuota");
-  await c.query("DELETE FROM anio_asistencia");
 
   await c.query("UPDATE ajustes SET cupo = $1, cuota_euros = $2", [
     entero(e.cupo, "cupo", 0, 100000),
     typeof e.cuota === "number" && e.cuota >= 0 ? e.cuota : 0,
   ]);
 
+  // Los años de los archivados pueden seguir existiendo; solo se garantizan
+  // los del nuevo estado, sin borrar los que ya hay.
   for (const a of e.aniosCuotas ?? []) await garantizarAnioCuota(c, anio(a));
   for (const a of e.aniosAsis ?? []) await garantizarAnioAsistencia(c, anio(a));
+
+  // Archivados: fila con puesto NULL y el número congelado.
+  for (const a of e.archivados ?? []) {
+    await c.query(
+      `INSERT INTO hermano (id, puesto, nombre, bloque, telefono, notas, archivado, puesto_archivado)
+       VALUES ($1, NULL, $2, $3, $4, $5, true, $6)`,
+      [
+        texto(a.id, "id", 64),
+        texto(a.nombre ?? "", "nombre"),
+        bloque(a.bloque),
+        texto(a.telefono ?? "", "telefono", 40),
+        texto(a.notas ?? "", "notas", 500),
+        entero(a.numero ?? 0, "numero", 0, 100000),
+      ]
+    );
+
+    for (const [an, estado] of Object.entries(a.cuotas ?? {})) {
+      const v = cuotaVal(estado);
+      if (!v) continue;
+      await garantizarAnioCuota(c, anio(Number(an)));
+      await c.query(
+        "INSERT INTO cuota (hermano_id, anio, estado) VALUES ($1, $2, $3) ON CONFLICT (hermano_id, anio) DO UPDATE SET estado = EXCLUDED.estado",
+        [a.id, Number(an), v]
+      );
+    }
+
+    for (const [an, par] of Object.entries(a.asis ?? {})) {
+      await garantizarAnioAsistencia(c, anio(Number(an)));
+      for (const p of ["exc", "sm"] as const) {
+        const m = marca(par?.[p] ?? "");
+        if (!m) continue;
+        await c.query(
+          "INSERT INTO asistencia (hermano_id, anio, procesion, marca) VALUES ($1, $2, $3, $4) ON CONFLICT (hermano_id, anio, procesion) DO UPDATE SET marca = EXCLUDED.marca",
+          [a.id, Number(an), p, m]
+        );
+      }
+    }
+  }
 
   let puesto = 0;
   for (const h of e.hermanos) {
@@ -198,9 +243,45 @@ export async function aplicar(c: pg.PoolClient, ops: Operacion[]): Promise<void>
         );
         break;
 
-      case "hermano.baja":
+      case "hermano.baja": {
+        // Se archiva, no se borra: se conservan bloque, marcas y cuotas, y se
+        // congela el Nº impreso que ocupaba (el que manda el cliente, o el
+        // puesto actual si no lo manda). El puesto se libera para los que quedan.
+        const id = texto(op.id, "id", 64);
+        let congelado: number | null = null;
+        if (typeof op.numero === "number" && Number.isInteger(op.numero) && op.numero > 0) {
+          congelado = op.numero;
+        } else {
+          const r = await c.query<{ puesto: number | null }>(
+            "SELECT puesto FROM hermano WHERE id = $1",
+            [id]
+          );
+          congelado = r.rows[0]?.puesto ?? null;
+        }
+        await c.query(
+          "UPDATE hermano SET archivado = true, puesto_archivado = $2, puesto = NULL WHERE id = $1",
+          [id, congelado]
+        );
+        break;
+      }
+
+      case "hermano.reactivar": {
+        const id = texto(op.id, "id", 64);
+        // Se le asigna el siguiente puesto de la lista activa y se desarchiva.
+        const puesto = await siguientePuesto(c);
+        await c.query(
+          "UPDATE hermano SET archivado = false, puesto = $2, puesto_archivado = NULL WHERE id = $1",
+          [id, puesto]
+        );
+        break;
+      }
+
+      case "hermano.borrar": {
+        // Borrado definitivo: no se conserva nada. El ON DELETE CASCADE de
+        // cuota y asistencia se lleva las marcas.
         await c.query("DELETE FROM hermano WHERE id = $1", [texto(op.id, "id", 64)]);
         break;
+      }
 
       case "hermano.campos": {
         // Solo se tocan los campos que vienen: si otra persona está editando

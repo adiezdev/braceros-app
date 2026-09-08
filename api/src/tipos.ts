@@ -30,6 +30,22 @@ export interface Estado {
   aniosCuotas: number[];
   aniosAsis: number[];
   hermanos: Hermano[];
+  /** Hermanos dados de baja: conservan bloque y Nº del momento de archivar. */
+  archivados: HermanoArchivado[];
+}
+
+/** Un hermano que se dio de baja. Congela bloque y Nº del momento del archivo. */
+export interface HermanoArchivado {
+  id: string;
+  nombre: string;
+  /** Bloque (titular/suplente/honorario) que tenía al archivar. */
+  bloque: Bloque;
+  telefono: string;
+  notas: string;
+  /** Nº que ocupaba en la lista al archivar. */
+  numero: number;
+  cuotas: Record<number, Cuota>;
+  asis: Record<number, Asistencia>;
 }
 
 /**
@@ -43,7 +59,9 @@ export type Operacion =
   | { tipo: "anio.alta"; cual: "cuotas" | "asistencias"; anio: number }
   | { tipo: "anio.baja"; cual: "cuotas" | "asistencias"; anio: number }
   | { tipo: "hermano.alta"; id: string; nombre: string; bloque: Bloque; telefono: string; notas: string }
-  | { tipo: "hermano.baja"; id: string }
+  | { tipo: "hermano.baja"; id: string; numero?: number }
+  | { tipo: "hermano.reactivar"; id: string }
+  | { tipo: "hermano.borrar"; id: string }
   | { tipo: "hermano.campos"; id: string; nombre?: string; bloque?: Bloque; telefono?: string; notas?: string }
   | { tipo: "hermano.orden"; ids: string[] }
   | { tipo: "cuota"; hermanoId: string; anio: number; estado: Cuota }

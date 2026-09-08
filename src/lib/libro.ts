@@ -140,13 +140,11 @@ export async function leerLibro(datos: Uint8Array): Promise<Estado> {
     );
   }
 
-  let cupo = CUPO_POR_DEFECTO;
   let cuota = CUOTA_POR_DEFECTO;
   fR.forEach((f) => {
     const et = String(f?.[0] ?? "").toLowerCase();
     const v = Number(String(f?.[1] ?? "").replace(",", "."));
     if (!Number.isFinite(v) || v <= 0) return;
-    if (et.includes("cupo")) cupo = v;
     if (et.includes("cuota")) cuota = v;
   });
 
@@ -154,11 +152,12 @@ export async function leerLibro(datos: Uint8Array): Promise<Estado> {
   const aniosAsis = [...colAsis.keys()].sort((a, b) => a - b);
 
   return {
-    cupo,
+    cupo: CUPO_POR_DEFECTO,
     cuota,
     aniosCuotas: aniosCuotas.length ? aniosCuotas : [ANIO_BASE],
     aniosAsis: aniosAsis.length ? aniosAsis : [ANIO_BASE],
     hermanos,
+    archivados: [],
   };
 }
 

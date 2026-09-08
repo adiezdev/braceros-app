@@ -1,0 +1,18 @@
+.archivados-wrap { padding:0; }
+
+.archivados-tabla { font-size:13px; }
+
+.archivados-tabla th.th-acc { width:130px; }
+.archivados-tabla th.th-num { width:44px; text-align:right; }
+.archivados-tabla th.th-bloque { width:100px; }
+
+.archivados-tabla td.num { text-align:center; font-variant-numeric:tabular-nums; color:var(--suave); }
+.archivados-nombre { max-width:360px; }
+
+.archivados-tabla tbody tr:hover td { background:#FAF7F1; }
+
+.archivados-tabla .acc { white-space:nowrap; }
+
+@media (max-width:760px) {
+  .archivados-tabla .acc { min-width:120px; }
+}

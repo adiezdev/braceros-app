@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-import { corregirPorCupo, crearHermano } from "../lib/modelo";
+import { archivarHermano, corregirPorCupo, crearHermano, numerosPorBloque } from "../lib/modelo";
 import { confirmar } from "../lib/dialogo";
 import type { Estado } from "../types";
 
@@ -37,7 +37,11 @@ export function useReordenar(setEst: Dispatch<SetStateAction<Estado>>) {
     async (id: string, nombre: string) => {
       const ok = await confirmar(`¿Quitar a ${nombre || "este hermano"} de la lista?`);
       if (!ok) return;
-      setEst((p) => ({ ...p, hermanos: p.hermanos.filter((h) => h.id !== id) }));
+      setEst((p) => {
+        const idx = p.hermanos.findIndex((h) => h.id === id);
+        const numero = numerosPorBloque(p.hermanos)[idx] ?? 0;
+        return archivarHermano(p, id, numero);
+      });
     },
     [setEst]
   );

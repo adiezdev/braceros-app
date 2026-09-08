@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-import { corregirPorCupo, reubicarEnBloque } from "../lib/modelo";
+import { archivarHermano, corregirPorCupo, numerosPorBloque, reubicarEnBloque } from "../lib/modelo";
 import { confirmar } from "../lib/dialogo";
 import type { Bloque, Cuota, Estado, Marca } from "../types";
 
@@ -18,7 +18,14 @@ export function useAccionesBulk(
     const ids = [...seleccion];
     const ok = await confirmar(`¿Quitar ${ids.length} hermanos de la lista?`);
     if (!ok) return;
-    setEst((p) => ({ ...p, hermanos: p.hermanos.filter((h) => !ids.includes(h.id)) }));
+    setEst((p) => {
+      const numeros = numerosPorBloque(p.hermanos);
+      let estado = p;
+      p.hermanos.forEach((h, i) => {
+        if (ids.includes(h.id)) estado = archivarHermano(estado, h.id, numeros[i]);
+      });
+      return estado;
+    });
     limpiar();
   }, [seleccion, setEst, limpiar]);
 

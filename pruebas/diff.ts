@@ -1,5 +1,5 @@
 ﻿import { diferencias } from "../src/lib/diff";
-import type { Estado, Hermano } from "../src/types";
+import type { Estado, Hermano, HermanoArchivado } from "../src/types";
 
 // ESTO BORRA LA BASE ENTERA. El cerrojo está para que apuntar esto al NAS
 // "solo para probar una cosa" no se lleve por delante la lista de verdad.
@@ -17,7 +17,11 @@ const h = (id: string, p: Partial<Hermano> = {}): Hermano => ({
 });
 
 const est = (p: Partial<Estado> = {}): Estado => ({
-  cupo: 73, cuota: 10, aniosCuotas: [2025], aniosAsis: [2025], hermanos: [], ...p,
+  cupo: 73, cuota: 10, aniosCuotas: [2025], aniosAsis: [2025], hermanos: [], archivados: [], ...p,
+});
+
+const arch = (id: string, numero: number, p: Partial<HermanoArchivado> = {}): HermanoArchivado => ({
+  id, nombre: id.toUpperCase(), bloque: "TITULARES", telefono: "", notas: "", numero, cuotas: {}, asis: {}, ...p,
 });
 
 const post = async (ops: unknown[]) => {
@@ -35,18 +39,22 @@ const leer = async (): Promise<Estado> =>
  * asistencias siempre completo. Se normaliza lo esperado igual para poder
  * comparar sin ruido.
  */
-const normalizar = (e: Estado): Estado => ({
-  ...e,
-  hermanos: e.hermanos.map((x) => {
-    const cuotas: Hermano["cuotas"] = {};
+const normalizar = (e: Estado): Estado => {
+  const limp = (x: Hermano | HermanoArchivado): Hermano | HermanoArchivado => {
+    const cuotas: Record<number, string> = {};
     for (const [a, v] of Object.entries(x.cuotas)) if (v) cuotas[Number(a)] = v;
-    const asis: Hermano["asis"] = {};
+    const asis: Record<number, { exc: string; sm: string }> = {};
     for (const [a, v] of Object.entries(x.asis)) {
       if (v?.exc || v?.sm) asis[Number(a)] = { exc: v.exc || "", sm: v.sm || "" };
     }
     return { ...x, cuotas, asis };
-  }),
-});
+  };
+  return {
+    ...e,
+    hermanos: e.hermanos.map((x) => limp(x) as Hermano),
+    archivados: (e.archivados ?? []).map((x) => limp(x) as HermanoArchivado),
+  };
+};
 
 /** Deja la base en "antes", aplica el diff hacia "despues", y compara. */
 async function caso(nombre: string, antes: Estado, despues: Estado) {
@@ -90,11 +98,11 @@ await caso("subir uno de puesto", tres,
 await caso("dar de alta al final", tres,
   { ...tres, hermanos: [h("a"), h("b"), h("c"), h("d")] });
 
-await caso("borrar el del medio", tres,
-  { ...tres, hermanos: [h("a"), h("c")] });
+await caso("borrar el del medio (se archiva)", tres,
+  est({ hermanos: [h("a"), h("c")], archivados: [arch("b", 2)] }));
 
 await caso("borrar y reordenar de golpe", tres,
-  { ...tres, hermanos: [h("c"), h("a")] });
+  est({ hermanos: [h("c"), h("a")], archivados: [arch("b", 2)] }));
 
 await caso("anadir un anio", tres,
   { ...tres, aniosCuotas: [2025, 2026] });
@@ -111,7 +119,47 @@ const ops = diferencias(tres, muchos);
 const esReemplazo = !ops.some((o) => o.tipo === "reemplazar");
 if (!esReemplazo) fallos++;
 console.log(`${esReemplazo ? "OK  " : "FALLA"} un cambio masivo NO escala a reemplazar (${ops.length} ops)`);
-await caso("y ese reemplazo deja la lista correcta", tres, muchos);
+await caso("y ese reemplazo deja la lista correcta", tres, {
+  ...muchos,
+  archivados: [arch("a", 1), arch("b", 2), arch("c", 3)],
+});
+
+// Los archivados se insertan al final, porque reemplazar conserva las filas
+// archivadas de la base y así no dejan rastro para el resto de pruebas.
+await caso("archivar a uno del medio conserva su numero y bloque",
+  est({ hermanos: [h("a"), h("b", { bloque: "SUPLENTES" }), h("c")] }),
+  est({
+    hermanos: [h("a"), h("c")],
+    archivados: [arch("b", 2, { bloque: "SUPLENTES" })],
+  }));
+
+await caso("reactivar devuelve el hermano a la lista activa",
+  est({
+    hermanos: [h("a"), h("c")],
+    archivados: [arch("b", 2, { bloque: "SUPLENTES" })],
+  }),
+  est({ hermanos: [h("a"), h("c"), h("b", { bloque: "SUPLENTES" })] }));
+
+await caso("archivar conserva cuotas y asistencias del hermano",
+  est({ hermanos: [h("a"), h("b", { cuotas: { 2025: "S" } }), h("c")] }),
+  est({
+    hermanos: [h("a"), h("c")],
+    archivados: [arch("b", 2, { cuotas: { 2025: "S" } })],
+  }));
+
+await caso("reactivar conserva las marcas del hermano",
+  est({
+    hermanos: [h("a"), h("c")],
+    archivados: [arch("b", 2, { cuotas: { 2025: "S" } })],
+  }),
+  est({ hermanos: [h("a"), h("c"), h("b", { cuotas: { 2025: "S" } })] }));
+
+await caso("borrar un archivado para siempre lo elimina del estado",
+  est({
+    hermanos: [h("a"), h("c")],
+    archivados: [arch("b", 2, { cuotas: { 2025: "S" } })],
+  }),
+  est({ hermanos: [h("a"), h("c")] }));
 
 console.log(fallos ? `\n${fallos} comprobaciones fallan` : "\nTodo correcto");
 process.exit(fallos ? 1 : 0);

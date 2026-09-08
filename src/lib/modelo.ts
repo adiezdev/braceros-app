@@ -2,7 +2,7 @@ import {
   ANIO_BASE, BLOQUES, CICLO_CUOTA, CICLO_MARCA, CUOTA_POR_DEFECTO, CUPO_POR_DEFECTO,
 } from "../constants";
 import { LISTA } from "../data/lista";
-import type { Bloque, Cuota, Estado, Hermano, Marca } from "../types";
+import type { Bloque, Cuota, Estado, Hermano, HermanoArchivado, Marca } from "../types";
 
 let contador = 0;
 
@@ -100,6 +100,7 @@ export function estadoInicial(): Estado {
     aniosCuotas: [ANIO_BASE],
     aniosAsis: [ANIO_BASE],
     hermanos: leerLista(LISTA),
+    archivados: [],
   };
 }
 
@@ -276,4 +277,76 @@ export function moverANumero(
   const l = [...sinEl];
   l.splice(destino, 0, { ...h, bloque: bloqueNuevo });
   return l;
+}
+
+/**
+ * Archiva a un hermano: se saca de la lista activa y pasa a `archivados`
+ * congelando el Nº que ocupaba y su bloque (titular/suplente/honorario).
+ * Conserva todas sus cuotas y asistencias.
+ */
+export function archivarHermano(
+  estado: Estado,
+  id: string,
+  numero: number
+): Estado {
+  const hermano = estado.hermanos.find((h) => h.id === id);
+  if (!hermano) return estado;
+  const archivado: HermanoArchivado = {
+    id: hermano.id,
+    nombre: hermano.nombre,
+    bloque: hermano.bloque,
+    telefono: hermano.telefono,
+    notas: hermano.notas,
+    numero,
+    cuotas: { ...hermano.cuotas },
+    asis: JSON.parse(JSON.stringify(hermano.asis)) as typeof hermano.asis,
+  };
+  return {
+    ...estado,
+    hermanos: estado.hermanos.filter((h) => h.id !== id),
+    archivados: [...estado.archivados, archivado],
+  };
+}
+
+/**
+ * Reactiva a un hermano archivado: vuelve a la lista activa conservando sus
+ * marcas, se quita del listado de archivados y se le asigna bloque y un nuevo
+ * Nº inicial (el primero libre). El bloque se conserva del archivo.
+ */
+export function reactivarHermano(
+  estado: Estado,
+  id: string
+): Estado {
+  const archivado = estado.archivados.find((a) => a.id === id);
+  if (!archivado) return estado;
+  const activado: Hermano = {
+    id: archivado.id,
+    nombre: archivado.nombre,
+    bloque: archivado.bloque,
+    telefono: archivado.telefono,
+    notas: archivado.notas,
+    cuotas: { ...archivado.cuotas },
+    asis: JSON.parse(JSON.stringify(archivado.asis)) as typeof archivado.asis,
+  };
+  const hermanos = estado.hermanos;
+  let indice = hermanos.length;
+  if (activado.bloque === "HONORARIOS") {
+    indice = 0;
+  } else if (activado.bloque === "TITULARES") {
+    indice = hermanos.findIndex((h) => h.bloque !== "HONORARIOS");
+    if (indice < 0) indice = hermanos.length;
+  }
+  const lista = [...hermanos];
+  lista.splice(indice, 0, activado);
+  return {
+    ...estado,
+    hermanos: lista,
+    archivados: estado.archivados.filter((a) => a.id !== id),
+  };
+}
+
+/** Borra definitivamente los archivados indicados: no se conserva nada. */
+export function borrarArchivados(estado: Estado, ids: string[]): Estado {
+  const fuera = new Set(ids);
+  return { ...estado, archivados: estado.archivados.filter((a) => !fuera.has(a.id)) };
 }

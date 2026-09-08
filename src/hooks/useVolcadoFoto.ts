@@ -4,7 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { PROCESIONES } from "../constants";
 import { confirmar } from "../lib/dialogo";
 import { leerFotos, type Alineable } from "../lib/foto";
-import { numerosPorBloque, siguienteCuota, siguienteMarca } from "../lib/modelo";
+import { archivarHermano, numerosPorBloque, siguienteCuota, siguienteMarca } from "../lib/modelo";
 import type {
   Bloque,
   CfgImpresion,
@@ -143,11 +143,17 @@ export function useVolcadoFoto(
       if (!ok) return;
     }
     const idsBaja = new Set(bajas.map((f) => f.id));
-    setEst((p) => ({
-      ...p,
-      hermanos: p.hermanos
-        .filter((h) => !idsBaja.has(h.id))
-        .map((h) => {
+    setEst((p) => {
+      // Archivar tachados con su número de bloque congelado.
+      const numeros = numerosPorBloque(p.hermanos);
+      let estado = p;
+      p.hermanos.forEach((h, i) => {
+        if (idsBaja.has(h.id)) estado = archivarHermano(estado, h.id, numeros[i]);
+      });
+      // Aplicar marcas/cuotas a los que no fueron tachados.
+      return {
+        ...estado,
+        hermanos: estado.hermanos.map((h) => {
           const leida = acumulado.find((f) => f.id === h.id);
           if (!leida || leida.quitar) return h;
           if (esCuotas) {
@@ -159,7 +165,8 @@ export function useVolcadoFoto(
             asis: { ...h.asis, [anio]: { ...prev, [procesion]: leida.marca as Marca } },
           };
         }),
-    }));
+      };
+    });
     onCerrar();
   };
 

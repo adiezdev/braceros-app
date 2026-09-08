@@ -1,7 +1,7 @@
 import type pg from "pg";
 
 import { pool } from "./db.js";
-import type { Asistencia, Estado, Hermano } from "./tipos.js";
+import type { Asistencia, Estado, Hermano, HermanoArchivado } from "./tipos.js";
 
 /**
  * Reconstruye el Estado que espera la interfaz a partir de las tablas
@@ -11,8 +11,8 @@ import type { Asistencia, Estado, Hermano } from "./tipos.js";
 export async function leerEstado(c: pg.PoolClient | pg.Pool = pool): Promise<Estado> {
   const [ajustes, hermanos, cuotas, asis, aniosC, aniosA] = await Promise.all([
     c.query<{ cupo: number; cuota_euros: number }>("SELECT cupo, cuota_euros FROM ajustes"),
-    c.query<Omit<Hermano, "cuotas" | "asis">>(
-      "SELECT id, nombre, bloque, telefono, notas FROM hermano ORDER BY puesto"
+    c.query<Omit<Hermano, "cuotas" | "asis"> & { archivado: boolean; puesto_archivado: number | null }>(
+      "SELECT id, nombre, bloque, telefono, notas, archivado, puesto_archivado FROM hermano ORDER BY puesto NULLS LAST, puesto_archivado"
     ),
     c.query<{ hermano_id: string; anio: number; estado: "S" | "N" }>(
       "SELECT hermano_id, anio, estado FROM cuota"
@@ -24,12 +24,28 @@ export async function leerEstado(c: pg.PoolClient | pg.Pool = pool): Promise<Est
     c.query<{ anio: number }>("SELECT anio FROM anio_asistencia ORDER BY anio"),
   ]);
 
-  const porId = new Map<string, Hermano>();
-  const lista = hermanos.rows.map((h) => {
-    const completo: Hermano = { ...h, cuotas: {}, asis: {} };
-    porId.set(h.id, completo);
-    return completo;
-  });
+  const lista: Hermano[] = [];
+  const archivados: HermanoArchivado[] = [];
+  const porId = new Map<string, Hermano | HermanoArchivado>();
+
+  for (const h of hermanos.rows) {
+    const { archivado, puesto_archivado, ...datos } = h;
+    if (archivado) {
+      const ar: HermanoArchivado = {
+        ...datos,
+        bloque: datos.bloque,
+        numero: puesto_archivado ?? 0,
+        cuotas: {},
+        asis: {},
+      };
+      archivados.push(ar);
+      porId.set(ar.id, ar);
+    } else {
+      const completo: Hermano = { ...datos, cuotas: {}, asis: {} };
+      lista.push(completo);
+      porId.set(completo.id, completo);
+    }
+  }
 
   for (const r of cuotas.rows) {
     const h = porId.get(r.hermano_id);
@@ -51,6 +67,7 @@ export async function leerEstado(c: pg.PoolClient | pg.Pool = pool): Promise<Est
     aniosCuotas: aniosC.rows.map((r) => r.anio),
     aniosAsis: aniosA.rows.map((r) => r.anio),
     hermanos: lista,
+    archivados,
   };
 }
 

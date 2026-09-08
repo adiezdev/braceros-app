@@ -11,6 +11,7 @@ import { useAccionesApp } from "./hooks/useAccionesApp";
 import { useEstadoRemoto, type Conexion } from "./hooks/useEstadoRemoto";
 import { usePantallaCompleta } from "./hooks/usePantallaCompleta";
 import type { CfgImpresion, Pestana } from "./types";
+import { ArchivadosView } from "./views/ArchivadosView";
 import { AsistenciasView } from "./views/AsistenciasView";
 import { CuotasView } from "./views/CuotasView";
 import { HermanosView } from "./views/HermanosView";
@@ -20,6 +21,7 @@ const PESTANAS: [Pestana, string][] = [
   ["hermanos", "Hermanos"],
   ["cuotas", "Cuotas"],
   ["asistencias", "Asistencias"],
+  ["archivados", "Archivados"],
   ["imprimir", "Listado en papel"],
 ];
 
@@ -162,7 +164,7 @@ export default function App() {
         ))}
       </nav>
 
-      {pestana !== "imprimir" && (
+      {pestana !== "imprimir" && pestana !== "archivados" && (
         <div className="barra">
           <label className="buscador">
             <Search size={15} />
@@ -228,6 +230,7 @@ export default function App() {
             {pestana === "asistencias" && (
               <AsistenciasView est={est} setEst={setEst} filtro={filtro} />
             )}
+            {pestana === "archivados" && <ArchivadosView est={est} setEst={setEst} />}
             {pestana === "imprimir" && (
               <ImprimirView est={est} cfg={cfgImpr} setCfg={setCfgImpr} />
             )}

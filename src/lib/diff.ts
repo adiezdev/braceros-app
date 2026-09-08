@@ -1,4 +1,5 @@
 import { PROCESIONES } from "../constants";
+import { numerosPorBloque } from "./modelo";
 import type { Estado, Hermano, Operacion } from "../types";
 
 const VACIO: Pick<Hermano, "cuotas" | "asis"> = { cuotas: {}, asis: {} };
@@ -32,12 +33,28 @@ export function diferencias(antes: Estado, ahora: Estado): Operacion[] {
 
   const porIdAntes = new Map(antes.hermanos.map((h) => [h.id, h]));
   const idsAhora = new Set(ahora.hermanos.map((h) => h.id));
+  const idsArchivadosAntes = new Map((antes.archivados ?? []).map((a) => [a.id, a]));
+  const idsArchivadosAhora = new Map((ahora.archivados ?? []).map((a) => [a.id, a]));
+
+  // 2b. Reactivar: un hermano archivado que vuelve a la lista activa.
+  for (const a of antes.archivados ?? []) {
+    if (idsAhora.has(a.id)) ops.push({ tipo: "hermano.reactivar", id: a.id });
+  }
+
+  // 2c. Borrado definitivo: un archivado que desaparece de ambos lados
+  // (no vuelve a la lista ni sigue archivado). No hay vuelta atrás.
+  for (const a of antes.archivados ?? []) {
+    if (!idsAhora.has(a.id) && !idsArchivadosAhora.has(a.id)) {
+      ops.push({ tipo: "hermano.borrar", id: a.id });
+    }
+  }
 
   for (const h of ahora.hermanos) {
     const p = porIdAntes.get(h.id);
+    const vieneDeArchivo = idsArchivadosAntes.has(h.id);
 
-    // 3. Altas.
-    if (!p) {
+    // 3. Altas (solo hermanos nuevos: los reactivados no son altas).
+    if (!p && !vieneDeArchivo) {
       ops.push({
         tipo: "hermano.alta",
         id: h.id,
@@ -46,7 +63,7 @@ export function diferencias(antes: Estado, ahora: Estado): Operacion[] {
         telefono: h.telefono,
         notas: h.notas,
       });
-    } else {
+    } else if (p) {
       // 4. Campos sueltos: solo los que cambian, para no pisar lo que otro
       // esté editando del mismo hermano.
       const campos: Partial<Pick<Hermano, "nombre" | "bloque" | "telefono" | "notas">> = {};
@@ -86,9 +103,14 @@ export function diferencias(antes: Estado, ahora: Estado): Operacion[] {
     ops.push({ tipo: "hermano.orden", ids: ahora.hermanos.map((h) => h.id) });
   }
 
-  // 8. Bajas, después de reordenar.
-  for (const h of antes.hermanos) {
-    if (!idsAhora.has(h.id)) ops.push({ tipo: "hermano.baja", id: h.id });
+  // 8. Bajas (archivados), después de reordenar.
+  const numeros = numerosPorBloque(antes.hermanos);
+  for (let k = 0; k < antes.hermanos.length; k++) {
+    const h = antes.hermanos[k];
+    if (idsAhora.has(h.id)) continue;
+    // Si el hermano pasó a archivados, mandamos el Nº congelado.
+    const numero = idsArchivadosAhora.get(h.id)?.numero ?? numeros[k];
+    ops.push({ tipo: "hermano.baja", id: h.id, numero });
   }
 
   // 9. Años que se van, al final: su cascada limpia las marcas.

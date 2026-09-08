@@ -31,7 +31,7 @@ export function useAccionesApp({ est, setEst, reemplazar, setCfg }: Props) {
           `Esto sustituye la lista del servidor por los ${nuevo.hermanos.length} hermanos del Excel, para todo el mundo. ¿Sigo?`
         );
         if (!ok) return;
-        reemplazar(nuevo);
+        reemplazar({ ...nuevo, archivados: est?.archivados ?? [] });
         const ultimo = Math.max(...nuevo.aniosAsis, ...nuevo.aniosCuotas);
         setCfg((c) => ({ ...c, anioAnterior: ultimo, aniosNuevos: [ultimo + 1] }));
         notificar("Excel cargado", "ok", `${nuevo.hermanos.length} hermanos y los años ${nuevo.aniosAsis.join(", ")}.`);
@@ -39,7 +39,7 @@ export function useAccionesApp({ est, setEst, reemplazar, setCfg }: Props) {
         notificar("No he podido leer el fichero", "error", e instanceof Error ? e.message : undefined);
       }
     },
-    [reemplazar, setCfg]
+    [reemplazar, setCfg, est]
   );
 
   const exportar = useCallback(async () => {
@@ -57,9 +57,9 @@ export function useAccionesApp({ est, setEst, reemplazar, setCfg }: Props) {
       "¿Volver a la lista transcrita de las hojas? Se pierde lo apuntado en el servidor, para todo el mundo."
     );
     if (!ok) return;
-    reemplazar(estadoInicial());
+    reemplazar({ ...estadoInicial(), archivados: est?.archivados ?? [] });
     notificar("Lista restaurada", "ok", "Tal como se transcribió de las hojas.");
-  }, [reemplazar]);
+  }, [reemplazar, est]);
 
   const anadirHermano = useCallback(
     () => setEst((p) => ({ ...p, hermanos: [...p.hermanos, crearHermano()] })),

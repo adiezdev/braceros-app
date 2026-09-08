@@ -34,6 +34,8 @@ function avisoDeGuardado(lote: Operacion[]): string | null {
   if (tipos.has("reemplazar")) return null; // quien lo pide ya avisa
   if (tipos.has("hermano.alta")) return "Hermano añadido a la lista";
   if (tipos.has("hermano.baja")) return "Hermano quitado de la lista";
+  if (tipos.has("hermano.reactivar")) return "Hermano reactivado";
+  if (tipos.has("hermano.borrar")) return "Hermano borrado para siempre";
   if (tipos.has("anio.alta") || tipos.has("anio.baja")) return "Años actualizados";
   if (tipos.has("ajustes")) return "Cupo y cuota actualizados";
   return lote.length ? "Cambios guardados" : null;
