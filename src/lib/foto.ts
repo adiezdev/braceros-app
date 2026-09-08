@@ -67,7 +67,7 @@ function aBase64(file: File): Promise<string> {
  * en la lista se descartan (no debería pasar con una hoja correcta).
  */
 export function alinear(
-  filas: { n: number; marca: Marca | Cuota }[],
+  filas: { n: number; marca: Marca | Cuota; quitar?: boolean }[],
   lista: Alineable[]
 ): FilaLeida[] {
   const porN = new Map(lista.map((l) => [l.n, l]));
@@ -81,6 +81,7 @@ export function alinear(
       nombre: base.nombre,
       marca: f.marca,
       confianza: confianzaDe(f.marca),
+      quitar: f.quitar,
     });
   }
   // Devolvemos en el orden de la lista para que la revisión sea cómoda.

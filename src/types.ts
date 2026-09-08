@@ -54,6 +54,8 @@ export interface FilaLeida {
   marca: Marca | Cuota;
   /** 0..1; por debajo de ~0.6 conviene que el usuario la repare. */
   confianza: number;
+  /** true si el hermano está tachado en la foto: hay que quitarlo de la lista. */
+  quitar?: boolean;
 }
 
 export interface Estado {

@@ -49,6 +49,8 @@
 .m--no { color:var(--rojo); border-color:var(--rojo); background:#FBF1F2; }
 .m--just { color:var(--laton); border-color:var(--laton); background:#FBF7EE; }
 .m--vacia { color:#C4BCB2; }
+.m--baja { color:var(--rojo); border-color:var(--rojo); background:#FBF1F2;
+  font-weight:700; }
 .m:hover { border-color:var(--burdeos); }
 
 /* barra de acciones en lote */

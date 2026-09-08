@@ -30,6 +30,10 @@
 .volcado__errores li { margin-bottom:2px; }
 .volcado__resumen { font-size:12px; color:var(--suave); margin:0 0 8px; }
 .volcado__duda { color:var(--laton); font-weight:600; }
+.volcado__baja-info { color:var(--rojo); font-weight:600; }
+.volcado__fila-baja { background:#FBF1F2; }
+.volcado__fila-baja td { color:var(--suave); }
+.volcado__tachado { text-decoration:line-through; }
 .volcado__tabla { max-height:380px; overflow:auto; border:1px solid var(--filete);
   border-radius:4px; margin-bottom:12px; }
 .m--duda { outline:2px solid var(--laton); outline-offset:-2px; }

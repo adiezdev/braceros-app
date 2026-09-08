@@ -26,12 +26,14 @@ export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
     errores,
     acumulado,
     conMarca,
+    conBaja,
     seleccionarModo,
     seleccionarSeccion,
     seleccionarProcesion,
     seleccionarAnio,
     elegirFotos,
     corregir,
+    alternarBaja,
     guardar,
     descartar,
   } = useVolcadoFoto(est, cfg, setEst, onCerrar);
@@ -144,6 +146,12 @@ export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
                   · {conMarca} con marca: repásalas pulsándolas si hace falta
                 </span>
               )}
+              {conBaja > 0 && (
+                <span className="volcado__baja-info">
+                  {" "}
+                  · {conBaja} {conBaja === 1 ? "tachado" : "tachados"} para quitar de la lista
+                </span>
+              )}
             </p>
             <div className="volcado__tabla">
               <table className="rejilla">
@@ -156,23 +164,35 @@ export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
                 </thead>
                 <tbody>
                   {acumulado.map((f) => (
-                    <tr key={f.id}>
+                    <tr key={f.id} className={f.quitar ? "volcado__fila-baja" : undefined}>
                       <td className="num">{f.n}</td>
-                      <td>{f.nombre}</td>
+                      <td className={f.quitar ? "volcado__tachado" : undefined}>
+                        {f.nombre}
+                      </td>
                       <td className="td-marca">
-                        <button
-                          className={`m ${claseCelda(f.marca, esCuotas ? "cuota" : "marca")} ${
-                            f.marca ? "m--duda" : ""
-                          }`}
-                          onClick={() => corregir(f.id)}
-                          title={
-                            esCuotas
-                              ? "Pulsa para cambiar: vacío, S, N"
-                              : "Pulsa para cambiar: vacío, V, F, FJ"
-                          }
-                        >
-                          {f.marca || "·"}
-                        </button>
+                        {f.quitar ? (
+                          <button
+                            className="m m--baja"
+                            onClick={() => alternarBaja(f.id)}
+                            title="Tachado: se quitará de la lista. Pulsa para revertir."
+                          >
+                            ✕
+                          </button>
+                        ) : (
+                          <button
+                            className={`m ${claseCelda(f.marca, esCuotas ? "cuota" : "marca")} ${
+                              f.marca ? "m--duda" : ""
+                            }`}
+                            onClick={() => corregir(f.id)}
+                            title={
+                              esCuotas
+                                ? "Pulsa para cambiar: vacío, S, N"
+                                : "Pulsa para cambiar: vacío, V, F, FJ"
+                            }
+                          >
+                            {f.marca || "·"}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

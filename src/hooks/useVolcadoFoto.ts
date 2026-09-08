@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import { PROCESIONES } from "../constants";
+import { confirmar } from "../lib/dialogo";
 import { leerFotos, type Alineable } from "../lib/foto";
 import { numerosPorBloque, siguienteCuota, siguienteMarca } from "../lib/modelo";
 import type {
@@ -28,12 +29,14 @@ export interface VolcadoFotoHook {
   errores: string[];
   acumulado: FilaLeida[];
   conMarca: number;
+  conBaja: number;
   seleccionarModo: (m: ModoFoto) => void;
   seleccionarSeccion: (s: SeccionFoto) => void;
   seleccionarProcesion: (p: ClaveProcesion) => void;
   seleccionarAnio: (a: number) => void;
   elegirFotos: (files: FileList | null | undefined) => void;
   corregir: (id: string) => void;
+  alternarBaja: (id: string) => void;
   guardar: () => void;
   descartar: () => void;
 }
@@ -124,27 +127,44 @@ export function useVolcadoFoto(
     );
   };
 
-  const guardar = () => {
+  const alternarBaja = (id: string) => {
+    setAcumulado((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, quitar: f.quitar ? undefined : true } : f))
+    );
+  };
+
+  const guardar = async () => {
     if (!acumulado.length) return;
+    const bajas = acumulado.filter((f) => f.quitar);
+    if (bajas.length) {
+      const ok = await confirmar(
+        `${bajas.length > 1 ? `${bajas.length} hermanos están tachados` : `${bajas[0].nombre} está tachado`}: se quitan de la lista para todo el mundo. ¿Sigo?`
+      );
+      if (!ok) return;
+    }
+    const idsBaja = new Set(bajas.map((f) => f.id));
     setEst((p) => ({
       ...p,
-      hermanos: p.hermanos.map((h) => {
-        const leida = acumulado.find((f) => f.id === h.id);
-        if (!leida) return h;
-        if (esCuotas) {
-          return { ...h, cuotas: { ...h.cuotas, [anio]: leida.marca as Cuota } };
-        }
-        const prev = h.asis?.[anio] ?? { exc: "" as Marca, sm: "" as Marca };
-        return {
-          ...h,
-          asis: { ...h.asis, [anio]: { ...prev, [procesion]: leida.marca as Marca } },
-        };
-      }),
+      hermanos: p.hermanos
+        .filter((h) => !idsBaja.has(h.id))
+        .map((h) => {
+          const leida = acumulado.find((f) => f.id === h.id);
+          if (!leida || leida.quitar) return h;
+          if (esCuotas) {
+            return { ...h, cuotas: { ...h.cuotas, [anio]: leida.marca as Cuota } };
+          }
+          const prev = h.asis?.[anio] ?? { exc: "" as Marca, sm: "" as Marca };
+          return {
+            ...h,
+            asis: { ...h.asis, [anio]: { ...prev, [procesion]: leida.marca as Marca } },
+          };
+        }),
     }));
     onCerrar();
   };
 
-  const conMarca = acumulado.filter((f) => f.marca).length;
+  const conMarca = acumulado.filter((f) => f.marca && !f.quitar).length;
+  const conBaja = acumulado.filter((f) => f.quitar).length;
 
   const desacumular = () => {
     setAcumulado([]);
@@ -174,12 +194,14 @@ export function useVolcadoFoto(
     errores,
     acumulado,
     conMarca,
+    conBaja,
     seleccionarModo,
     seleccionarSeccion,
     seleccionarProcesion: setProcesion,
     seleccionarAnio: setAnio,
     elegirFotos,
     corregir,
+    alternarBaja,
     guardar,
     descartar: desacumular,
   };

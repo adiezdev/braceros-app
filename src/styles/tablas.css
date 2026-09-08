@@ -21,12 +21,12 @@
 
 .num { text-align:right; color:var(--suave); font-variant-numeric:tabular-nums; }
 .num-enlace { font:inherit; font-variant-numeric:tabular-nums; color:inherit;
-  background:none; border:1px solid transparent; border-radius:2px; padding:2px 4px;
+  background:none; border:1px solid transparent; border-radius:2px; padding:3px 4px;
   text-align:right; cursor:pointer; }
 .num-enlace:hover:not(:disabled) { border-color:var(--filete); color:var(--burdeos); background:#fff; }
 .num-enlace:focus-visible { outline:none; border-color:var(--burdeos); }
 .num-edit { width:44px; font:inherit; font-variant-numeric:tabular-nums; text-align:right;
-  padding:2px 4px; border:1px solid var(--burdeos); border-radius:2px; background:#fff; }
+  padding:3px 4px; border:1px solid var(--burdeos); border-radius:2px; background:#fff; }
 .input-ayuda { display:inline-block; margin-left:8px; color:var(--suave); font-size:12px; }
 
 .nombre { white-space:nowrap; }

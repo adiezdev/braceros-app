@@ -5,6 +5,8 @@ import { http } from "./http";
 export interface FilaApi {
   n: number;
   marca: Marca | Cuota;
+  /** true si la fila está tachada en la foto: hay que quitarla de la lista. */
+  quitar?: boolean;
 }
 
 interface RespuestaLectura {
