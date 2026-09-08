@@ -44,7 +44,7 @@ export function TablaCuotas({ est, setEst, filtro }: Props) {
           <th>Nombre completo</th>
           <th className="th-bloque">Bloque</th>
           {aniosCuotas.map((a) => (
-            <th key={a} className="th-marca">
+            <th key={a} className="th-anio">
               {a}
             </th>
           ))}

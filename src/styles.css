@@ -100,7 +100,7 @@ body { background: #E8E4DC; }
 .rejilla thead tr:nth-child(2) th { top:26px; background:var(--burdeos-claro); }
 .rejilla th.th-anio { text-align:center; border-left:1px solid rgba(255,255,255,.35); }
 .rejilla th.th-marca { text-align:center; }
-.rejilla th.th-num { width:44px; }
+.rejilla th.th-num { width:44px; text-align:right; }
 .rejilla th.th-bloque { width:100px; }
 .rejilla th.th-tel { width:110px; }
 .rejilla th.th-acc { width:130px; }
@@ -218,13 +218,22 @@ body { background: #E8E4DC; }
   font-size:14px; color:var(--burdeos); margin:0 0 4px; }
 .impresion--print .impresion__bloque h2 span { color:#777; font-weight:400; font-size:12px; }
 
-.impresion table { border-collapse:collapse; width:100%; font-size:11px;
+.impresion table { border-collapse:collapse; width:100%; font-size:13px;
   font-family:Arial,Helvetica,sans-serif; }
 .impresion th { background:#E4E0DA; border:1px solid #999; padding:3px 5px;
   text-align:center; font-weight:600; }
 .impresion th:nth-child(2) { text-align:left; }
 .impresion td { border:1px solid #B8B2AA; padding:2px 5px; height:17px; }
 .impresion td.num { text-align:center; color:#000; }
+/* nombres más grandes; las casillas de estado ocupan poco */
+.impresion td:nth-child(2) { font-size: 13px; }
+.impresion th:nth-child(n+3), .impresion td:nth-child(n+3) { width:23mm; }
+/* color de la casilla según el estado: verde = sí/vino, rojo = no/falta,
+   ámbar = falta justificada */
+.impresion td.imp--si { background:#DFF0D8; }
+.impresion td.imp--no { background:#F5D6D1; }
+.impresion td.imp--just { background:#FBE9C9; }
+.impresion td.imp--si, .impresion td.imp--no, .impresion td.imp--just { color:#000; }
 
 .solo-impresion { position:fixed; left:-99999px; top:0; width:210mm; background:#fff; }
 

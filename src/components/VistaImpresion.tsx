@@ -18,7 +18,7 @@ interface Props {
 import { useMemo } from "react";
 
 export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
-  const { hermanos, cuota } = est;
+  const { hermanos } = est;
   const { tipo, anioAnterior, aniosNuevos, blancos } = cfg;
 
   const numeros = useMemo(() => numerosPorBloque(hermanos), [hermanos]);
@@ -54,10 +54,16 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
         ]
       : [h.cuotas?.[anioAnterior] ?? "", ...aniosNuevos.map((a) => h.cuotas?.[a] ?? "")];
 
-  const textoAnios =
-    aniosNuevos.length > 1
-      ? `años ${aniosNuevos.join(", ")}`
-      : `año ${aniosNuevos[0]}`;
+  /** Color de la casilla según el estado: verde = sí/vino, rojo = no/falta,
+      ámbar = falta justificada. */
+  const claseCelda = (v: string): string =>
+    v === "S" || v === "V"
+      ? "num imp--si"
+      : v === "N" || v === "F"
+        ? "num imp--no"
+        : v === "FJ" || v === "J"
+          ? "num imp--just"
+          : "num";
 
   const portada = (
     <section className="impresion__portada">
@@ -65,8 +71,8 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
       <h1 className="impresion__titulo">{ENTIDAD}</h1>
       <p className="impresion__sub">
         {tipo === "asistencias"
-          ? `Asistencia a las procesiones · ${textoAnios}`
-          : `Cuotas · ${textoAnios} · ${cuota} € anuales`}
+          ? `Asistencia a las procesiones`
+          : `Cuotas anuales`}
       </p>
     </section>
   );
@@ -99,7 +105,7 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
                       <td className="num">{n}</td>
                       <td>{h.nombre}</td>
                       {valores(h).map((v, k) => (
-                        <td key={k} className="num">
+                        <td key={k} className={claseCelda(v)}>
                           {v}
                         </td>
                       ))}
@@ -153,7 +159,7 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
                       <>
                         <td>{h.nombre}</td>
                         {valores(h).map((v, j) => (
-                          <td key={j} className="num">
+                          <td key={j} className={claseCelda(v)}>
                             {v}
                           </td>
                         ))}
