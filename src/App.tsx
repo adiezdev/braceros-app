@@ -1,4 +1,4 @@
-import { Download, Plus, RotateCcw, Search, Upload, X } from "lucide-react";
+import { Download, Maximize, Minimize, Plus, RotateCcw, Search, Upload, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 import { Aviso } from "./components/Aviso";
@@ -9,6 +9,7 @@ import { VolcadoFoto } from "./components/VolcadoFoto";
 import { ANIO_BASE, ENTIDAD } from "./constants";
 import { useAccionesApp } from "./hooks/useAccionesApp";
 import { useEstadoRemoto, type Conexion } from "./hooks/useEstadoRemoto";
+import { usePantallaCompleta } from "./hooks/usePantallaCompleta";
 import type { CfgImpresion, Pestana } from "./types";
 import { AsistenciasView } from "./views/AsistenciasView";
 import { CuotasView } from "./views/CuotasView";
@@ -31,6 +32,7 @@ const TEXTO_CONEXION: Record<Conexion, string> = {
 
 export default function App() {
   const { est, setEst, reemplazar, conexion, error, recargar } = useEstadoRemoto();
+  const { ocultar, activo, alternar } = usePantallaCompleta();
 
   const [pestana, setPestana] = useState<Pestana>("hermanos");
   const [filtro, setFiltro] = useState("");
@@ -123,6 +125,14 @@ export default function App() {
           </Button>
           <Button
             fino
+            onClick={alternar}
+            title={activo ? "Salir de pantalla completa" : "Pantalla completa: oculta el resumen y gana espacio"}
+          >
+            {activo ? <Minimize size={15} /> : <Maximize size={15} />}
+            Pantalla completa
+          </Button>
+          <Button
+            fino
             onClick={() => inputRef.current?.click()}
             title="Sustituir todo por el contenido de un Excel"
           >
@@ -138,7 +148,7 @@ export default function App() {
         </Aviso>
       )}
 
-      <Resumen est={est} />
+      {!ocultar && <Resumen est={est} />}
 
       <nav className="pestanas">
         {PESTANAS.map(([k, t]) => (
