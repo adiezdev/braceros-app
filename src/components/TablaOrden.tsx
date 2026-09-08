@@ -1,26 +1,21 @@
-import { ChevronDown, ChevronUp, CornerDownRight, Trash2 } from "lucide-react";
-import { Fragment, useMemo } from "react";
+import { useMemo } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
-import { BLOQUES, ETIQUETA_BLOQUE } from "../constants";
 import { useAccionesBulk } from "../hooks/useAccionesBulk";
 import { useEdicionNumero } from "../hooks/useEdicionNumero";
 import { useReordenar } from "../hooks/useReordenar";
 import { useSeleccion } from "../hooks/useSeleccion";
 import { filtrarVisibles } from "../lib/filtrar";
-import { esBloque, numerosPorBloque, reubicarEnBloque } from "../lib/modelo";
+import { numerosPorBloque, reubicarEnBloque } from "../lib/modelo";
 import type { Bloque, Estado, Hermano } from "../types";
 import { BulkBar } from "./BulkBar";
-import { LineaCupo } from "./LineaCupo";
-import { Input } from "./ui/Input";
-import { Select } from "./ui/Select";
+import { FilaHermano } from "./FilaHermano";
 
 interface Props {
   est: Estado;
-  setEst: React.Dispatch<React.SetStateAction<Estado>>;
+  setEst: Dispatch<SetStateAction<Estado>>;
   filtro: string;
 }
-
-const COLUMNAS = 7;
 
 /** La lista de hermanos: casillas, Nº editable, campos y acciones de fila. */
 export function TablaOrden({ est, setEst, filtro }: Props) {
@@ -85,117 +80,32 @@ export function TablaOrden({ est, setEst, filtro }: Props) {
         </thead>
         <tbody>
           {visibles.map(({ hermano: h, indice: i }) => (
-            <Fragment key={h.id}>
-              <tr>
-                <td className="td-check">
-                  <input
-                    type="checkbox"
-                    checked={seleccion.has(h.id)}
-                    onChange={() => alternar(h.id)}
-                    title="Seleccionar este hermano"
-                  />
-                </td>
-                <td className="num">
-                  {editandoId === h.id ? (
-                    <input
-                      autoFocus
-                      className="num-edit"
-                      value={borrador}
-                      title={pista || `Entre ${rango[0]} y ${rango[1]}`}
-                      onChange={(e) => setBorrador(e.target.value)}
-                      onBlur={() => confirmar(h.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          enEnter();
-                          (e.target as HTMLInputElement).blur();
-                        } else if (e.key === "Escape") {
-                          enEscape();
-                          (e.target as HTMLInputElement).blur();
-                        }
-                      }}
-                    />
-                  ) : (
-                    <button
-                      className="num-enlace"
-                      onClick={() => abrir(i)}
-                      disabled={!conRaya}
-                      title={`Marcar como ${h.bloque.toLowerCase() === "suplentes" ? "suplente" : "puesto"} nº…`}
-                    >
-                      {numeros[i]}
-                    </button>
-                  )}
-                </td>
-                <td>
-                  <Input
-                    value={h.nombre}
-                    placeholder="Nombre y apellidos"
-                    onChange={(e) => cambiarCampo(h.id, "nombre", e.target.value)}
-                  />
-                </td>
-                <td>
-                  <Select
-                    className={`sel--${h.bloque.toLowerCase()}`}
-                    value={h.bloque}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (esBloque(v)) cambiarCampo(h.id, "bloque", v);
-                    }}
-                  >
-                    {BLOQUES.map((b) => (
-                      <option key={b} value={b}>
-                        {ETIQUETA_BLOQUE[b]}
-                      </option>
-                    ))}
-                  </Select>
-                </td>
-                <td>
-                  <Input
-                    className="txt--corto"
-                    value={h.telefono}
-                    onChange={(e) => cambiarCampo(h.id, "telefono", e.target.value)}
-                  />
-                </td>
-                <td>
-                  <Input
-                    value={h.notas}
-                    onChange={(e) => cambiarCampo(h.id, "notas", e.target.value)}
-                  />
-                </td>
-                <td className="acc">
-                  <button
-                    onClick={() => mover(i, -1)}
-                    disabled={!conRaya || i === 0}
-                    title="Subir un puesto"
-                  >
-                    <ChevronUp size={17} />
-                  </button>
-                  <button
-                    onClick={() => mover(i, 1)}
-                    disabled={!conRaya || i === est.hermanos.length - 1}
-                    title="Bajar un puesto"
-                  >
-                    <ChevronDown size={17} />
-                  </button>
-                  <button
-                    onClick={() => insertarDebajo(i)}
-                    disabled={!conRaya}
-                    title="Insertar un hermano debajo"
-                  >
-                    <CornerDownRight size={17} />
-                  </button>
-                  <button
-                    className="acc--peligro"
-                    onClick={() => borrar(h.id, h.nombre)}
-                    title="Quitar de la lista"
-                  >
-                    <Trash2 size={17} />
-                  </button>
-                </td>
-              </tr>
-              {conRaya && i + 1 === est.cupo && (
-                <LineaCupo numero={numeros[est.cupo - 1] ?? 0} columnas={COLUMNAS} />
-              )}
-            </Fragment>
+            <FilaHermano
+              key={h.id}
+              hermano={h}
+              indice={i}
+              numero={numeros[i]}
+              totalHermanos={est.hermanos.length}
+              conRaya={conRaya}
+              seleccionado={seleccion.has(h.id)}
+              onAlternar={alternar}
+              editandoNumero={editandoId === h.id}
+              borrador={borrador}
+              pista={pista}
+              rango={rango}
+              onSetBorrador={setBorrador}
+              onConfirmarNumero={confirmar}
+              onEnter={enEnter}
+              onEscape={enEscape}
+              onAbrirNumero={abrir}
+              onCambiarCampo={cambiarCampo}
+              onMover={mover}
+              onInsertarDebajo={insertarDebajo}
+              onBorrar={borrar}
+              cupo={est.cupo}
+              mostrarRaya={conRaya}
+              numeros={numeros}
+            />
           ))}
         </tbody>
       </table>

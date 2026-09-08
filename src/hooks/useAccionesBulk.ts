@@ -6,8 +6,13 @@ import { confirmar } from "../lib/dialogo";
 import type { Bloque, Cuota, Estado, Marca } from "../types";
 
 /**
- * Operaciones sobre el conjunto de hermanos seleccionados. Todas deben
- * terminar limpiando la selección; la barra usa `aplicar` para ello.
+ * Operaciones sobre el conjunto de hermanos seleccionados.
+ *
+ * Contrato de limpieza de la selección:
+ * - `eliminar` se limpia solo: llama a `limpiar()` internamente al terminar.
+ * - El resto de acciones (bajarAlFinal, cambiarBloque, ponerMarca, ponerCuota)
+ *   NO limpian la selección: deben envolverse en `aplicar()`, que ejecuta la
+ *   acción y luego llama a `limpiar()`.
  */
 export function useAccionesBulk(
   setEst: Dispatch<SetStateAction<Estado>>,

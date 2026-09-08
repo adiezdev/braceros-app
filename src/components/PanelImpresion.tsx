@@ -1,5 +1,6 @@
 import { Plus, Printer, X } from "lucide-react";
 import { createPortal } from "react-dom";
+import type { Dispatch, SetStateAction } from "react";
 
 import { Button } from "./ui/Button";
 import { Campo } from "./ui/Campo";
@@ -9,7 +10,7 @@ import { VistaImpresion } from "./VistaImpresion";
 interface Props {
   est: Estado;
   cfg: CfgImpresion;
-  setCfg: React.Dispatch<React.SetStateAction<CfgImpresion>>;
+  setCfg: Dispatch<SetStateAction<CfgImpresion>>;
 }
 
 export function PanelImpresion({ est, cfg, setCfg }: Props) {

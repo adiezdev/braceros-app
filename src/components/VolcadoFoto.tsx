@@ -1,5 +1,6 @@
 import { Camera, Check } from "lucide-react";
 import { useRef } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 import { ETIQUETA_BLOQUE, PROCESIONES } from "../constants";
 import { useVolcadoFoto, nombreProcesion, type SeccionFoto } from "../hooks/useVolcadoFoto";
@@ -11,7 +12,7 @@ import { IconButton } from "./ui/IconButton";
 interface Props {
   est: Estado;
   cfg: CfgImpresion;
-  setEst: React.Dispatch<React.SetStateAction<Estado>>;
+  setEst: Dispatch<SetStateAction<Estado>>;
   onCerrar: () => void;
 }
 

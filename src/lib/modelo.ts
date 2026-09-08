@@ -299,7 +299,7 @@ export function archivarHermano(
     notas: hermano.notas,
     numero,
     cuotas: { ...hermano.cuotas },
-    asis: JSON.parse(JSON.stringify(hermano.asis)) as typeof hermano.asis,
+    asis: { ...hermano.asis },
   };
   return {
     ...estado,
@@ -326,7 +326,7 @@ export function reactivarHermano(
     telefono: archivado.telefono,
     notas: archivado.notas,
     cuotas: { ...archivado.cuotas },
-    asis: JSON.parse(JSON.stringify(archivado.asis)) as typeof archivado.asis,
+    asis: { ...archivado.asis },
   };
   const hermanos = estado.hermanos;
   let indice = hermanos.length;

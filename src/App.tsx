@@ -3,7 +3,11 @@ import { useMemo, useRef, useState } from "react";
 
 import { Aviso } from "./components/Aviso";
 import { FabFoto } from "./components/FabFoto";
+import { PanelImpresion } from "./components/PanelImpresion";
 import { Resumen } from "./components/Resumen";
+import { TablaAsistencias } from "./components/TablaAsistencias";
+import { TablaCuotas } from "./components/TablaCuotas";
+import { TablaOrden } from "./components/TablaOrden";
 import { Button } from "./components/ui/Button";
 import { VolcadoFoto } from "./components/VolcadoFoto";
 import { ANIO_BASE, ENTIDAD } from "./constants";
@@ -12,10 +16,6 @@ import { useEstadoRemoto, type Conexion } from "./hooks/useEstadoRemoto";
 import { usePantallaCompleta } from "./hooks/usePantallaCompleta";
 import type { CfgImpresion, Pestana } from "./types";
 import { ArchivadosView } from "./views/ArchivadosView";
-import { AsistenciasView } from "./views/AsistenciasView";
-import { CuotasView } from "./views/CuotasView";
-import { HermanosView } from "./views/HermanosView";
-import { ImprimirView } from "./views/ImprimirView";
 
 const PESTANAS: [Pestana, string][] = [
   ["hermanos", "Hermanos"],
@@ -225,14 +225,14 @@ export default function App() {
           </div>
         ) : (
           <>
-            {pestana === "hermanos" && <HermanosView est={est} setEst={setEst} filtro={filtro} />}
-            {pestana === "cuotas" && <CuotasView est={est} setEst={setEst} filtro={filtro} />}
+            {pestana === "hermanos" && <TablaOrden est={est} setEst={setEst} filtro={filtro} />}
+            {pestana === "cuotas" && <TablaCuotas est={est} setEst={setEst} filtro={filtro} />}
             {pestana === "asistencias" && (
-              <AsistenciasView est={est} setEst={setEst} filtro={filtro} />
+              <TablaAsistencias est={est} setEst={setEst} filtro={filtro} />
             )}
             {pestana === "archivados" && <ArchivadosView est={est} setEst={setEst} />}
             {pestana === "imprimir" && (
-              <ImprimirView est={est} cfg={cfgImpr} setCfg={setCfgImpr} />
+              <PanelImpresion est={est} cfg={cfgImpr} setCfg={setCfgImpr} />
             )}
           </>
         )}

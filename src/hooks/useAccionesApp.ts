@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import { ANIO_BASE } from "../constants";
@@ -17,6 +17,11 @@ interface Props {
 
 /** Acciones de la aplicación: importar/exportar Excel, restaurar, hermanos y años. */
 export function useAccionesApp({ est, setEst, reemplazar, setCfg }: Props) {
+  // Ref con el último `est`: los callbacks que solo leen el valor actual
+  // (exportar, restaurar, importar, anadirAnio) no se recrean en cada tecla.
+  const estRef = useRef(est);
+  estRef.current = est;
+
   const importar = useCallback(
     async (file: File | undefined) => {
       if (!file) return;
@@ -31,7 +36,7 @@ export function useAccionesApp({ est, setEst, reemplazar, setCfg }: Props) {
           `Esto sustituye la lista del servidor por los ${nuevo.hermanos.length} hermanos del Excel, para todo el mundo. ¿Sigo?`
         );
         if (!ok) return;
-        reemplazar({ ...nuevo, archivados: est?.archivados ?? [] });
+        reemplazar({ ...nuevo, archivados: estRef.current?.archivados ?? [] });
         const ultimo = Math.max(...nuevo.aniosAsis, ...nuevo.aniosCuotas);
         setCfg((c) => ({ ...c, anioAnterior: ultimo, aniosNuevos: [ultimo + 1] }));
         notificar("Excel cargado", "ok", `${nuevo.hermanos.length} hermanos y los años ${nuevo.aniosAsis.join(", ")}.`);
@@ -39,27 +44,28 @@ export function useAccionesApp({ est, setEst, reemplazar, setCfg }: Props) {
         notificar("No he podido leer el fichero", "error", e instanceof Error ? e.message : undefined);
       }
     },
-    [reemplazar, setCfg, est]
+    [reemplazar, setCfg]
   );
 
   const exportar = useCallback(async () => {
-    if (!est) return;
+    const actual = estRef.current;
+    if (!actual) return;
     try {
-      await descargarLibro(est);
+      await descargarLibro(actual);
       notificar("Excel descargado");
     } catch (e) {
       notificar("No he podido generar el Excel", "error", e instanceof Error ? e.message : undefined);
     }
-  }, [est]);
+  }, []);
 
   const restaurar = useCallback(async () => {
     const ok = await confirmar(
       "¿Volver a la lista transcrita de las hojas? Se pierde lo apuntado en el servidor, para todo el mundo."
     );
     if (!ok) return;
-    reemplazar({ ...estadoInicial(), archivados: est?.archivados ?? [] });
+    reemplazar({ ...estadoInicial(), archivados: estRef.current?.archivados ?? [] });
     notificar("Lista restaurada", "ok", "Tal como se transcribió de las hojas.");
-  }, [reemplazar, est]);
+  }, [reemplazar]);
 
   const anadirHermano = useCallback(
     () => setEst((p) => ({ ...p, hermanos: [...p.hermanos, crearHermano()] })),
@@ -68,9 +74,10 @@ export function useAccionesApp({ est, setEst, reemplazar, setCfg }: Props) {
 
   const anadirAnio = useCallback(
     async (cual: "cuotas" | "asistencias") => {
-      if (!est) return;
+      const actual = estRef.current;
+      if (!actual) return;
       const clave = cual === "cuotas" ? "aniosCuotas" : "aniosAsis";
-      const lista = est[clave];
+      const lista = actual[clave];
       const sugerido = (lista.length ? Math.max(...lista) : ANIO_BASE) + 1;
       const entrar = await preguntar("¿Qué año quieres añadir?", String(sugerido));
       if (entrar === null) return;
@@ -83,9 +90,9 @@ export function useAccionesApp({ est, setEst, reemplazar, setCfg }: Props) {
         await avisar(`El año ${anio} ya está.`);
         return;
       }
-      setEst({ ...est, [clave]: [...lista, anio].sort((a, b) => a - b) });
+      setEst({ ...actual, [clave]: [...lista, anio].sort((a, b) => a - b) });
     },
-    [est, setEst]
+    [setEst]
   );
 
   const quitarAnio = useCallback(
