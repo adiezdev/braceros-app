@@ -167,28 +167,28 @@ export function TablaOrden({ est, setEst, filtro }: Props) {
                     disabled={!conRaya || i === 0}
                     title="Subir un puesto"
                   >
-                    <ChevronUp size={15} />
+                    <ChevronUp size={17} />
                   </button>
                   <button
                     onClick={() => mover(i, 1)}
                     disabled={!conRaya || i === est.hermanos.length - 1}
                     title="Bajar un puesto"
                   >
-                    <ChevronDown size={15} />
+                    <ChevronDown size={17} />
                   </button>
                   <button
                     onClick={() => insertarDebajo(i)}
                     disabled={!conRaya}
                     title="Insertar un hermano debajo"
                   >
-                    <CornerDownRight size={15} />
+                    <CornerDownRight size={17} />
                   </button>
                   <button
                     className="acc--peligro"
                     onClick={() => borrar(h.id, h.nombre)}
                     title="Quitar de la lista"
                   >
-                    <Trash2 size={15} />
+                    <Trash2 size={17} />
                   </button>
                 </td>
               </tr>

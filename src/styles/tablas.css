@@ -40,7 +40,7 @@
 .td-marca { text-align:center; padding:2px 4px !important; }
 
 /* acciones de fila */
-.acc { display:flex; gap:2px; }
+.acc { display:flex; gap:2px; padding:4px 0 !important; }
 .acc button { border:1px solid transparent; background:none; cursor:pointer;
   color:var(--suave); display:flex; padding:3px; border-radius:2px; }
 .acc button:hover { border-color:var(--filete); color:var(--burdeos); background:#fff; }
