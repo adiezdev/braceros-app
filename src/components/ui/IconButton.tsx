@@ -1,21 +1,21 @@
 import { X } from "lucide-react";
-import type { ButtonHTMLAttributes } from "react";
+import { forwardRef } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-export function IconButton({
-  tono = "volcado",
-  etiqueta,
-  className = "",
-  ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & {
+export const IconButton = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement> & {
   /** variante de color según dónde aparezca el botón */
-  tono?: "volcado" | "bulk";
+  tono?: "volcado" | "bulk" | "fila";
   etiqueta?: string;
-}) {
+  children?: ReactNode;
+}>(function IconButton(
+  { tono = "volcado", etiqueta, className = "", children, ...rest },
+  ref,
+) {
   const clases = ["icon-btn", `icon-btn--${tono}`, className].filter(Boolean).join(" ");
   return (
-    <button className={clases} aria-label={etiqueta} {...rest}>
-      <X size={16} />
+    <button ref={ref} className={clases} aria-label={etiqueta} {...rest}>
+      {children ?? <X size={16} />}
       {etiqueta}
     </button>
   );
-}
+});

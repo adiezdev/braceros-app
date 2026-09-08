@@ -66,10 +66,8 @@ export function TablaOrden({ est, setEst, filtro }: Props) {
             <th>Nombre completo</th>
             <th className="th-bloque">Bloque</th>
             <th className="th-tel">Teléfono</th>
-            <th>Observaciones</th>
-            <th className="th-acc">
-              Orden <span className="input-ayuda">(pulsa el nº para reordenar)</span>
-            </th>
+            <th className="th-obs">Observaciones</th>
+            <th className="th-acc" aria-label="Acciones" title="Acciones" />
           </tr>
         </thead>
         <tbody>

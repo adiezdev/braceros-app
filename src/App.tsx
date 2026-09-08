@@ -137,24 +137,22 @@ export default function App() {
                     <MoreHorizontal size={16} />
                   </Button>
                 </DropdownMenu.Trigger>
-                <DropdownMenu.Portal>
-                  <DropdownMenu.Content className="menu" align="end" sideOffset={6}>
-                    <DropdownMenu.Item className="menu__item" onSelect={() => tema.alternar()}>
-                      {tema.tema === "dark" ? <Sun size={15} /> : <Moon size={15} />}
-                      {tema.tema === "dark" ? "Tema claro" : "Tema oscuro"}
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item className="menu__item" onSelect={() => { setGuardando(true); void restaurar().finally(() => setGuardando(false)); }}>
-                      <RotateCcw size={15} /> Restaurar lista
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item className="menu__item" onSelect={alternar}>
-                      {activo ? <Minimize size={15} /> : <Maximize size={15} />}
-                      Pantalla completa
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item className="menu__item" onSelect={() => inputRef.current?.click()}>
-                      <Upload size={15} /> Cargar otro Excel
-                    </DropdownMenu.Item>
-                  </DropdownMenu.Content>
-                </DropdownMenu.Portal>
+                <DropdownMenu.Content className="menu" align="end" sideOffset={6}>
+                  <DropdownMenu.Item className="menu__item" onSelect={() => tema.alternar()}>
+                    {tema.tema === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+                    {tema.tema === "dark" ? "Tema claro" : "Tema oscuro"}
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item className="menu__item" onSelect={() => { setGuardando(true); void restaurar().finally(() => setGuardando(false)); }}>
+                    <RotateCcw size={15} /> Restaurar lista
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item className="menu__item" onSelect={alternar}>
+                    {activo ? <Minimize size={15} /> : <Maximize size={15} />}
+                    Pantalla completa
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item className="menu__item" onSelect={() => inputRef.current?.click()}>
+                    <Upload size={15} /> Cargar otro Excel
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
               </DropdownMenu.Root>
             </>
           ) : (

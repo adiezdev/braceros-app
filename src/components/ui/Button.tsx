@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -8,17 +9,20 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   rightIcon?: ReactNode;
 }
 
-export function Button({
-  fuerte = false,
-  fino = false,
-  loading = false,
-  leftIcon,
-  rightIcon,
-  className = "",
-  children,
-  disabled,
-  ...rest
-}: Props) {
+export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
+  {
+    fuerte = false,
+    fino = false,
+    loading = false,
+    leftIcon,
+    rightIcon,
+    className = "",
+    children,
+    disabled,
+    ...rest
+  },
+  ref,
+) {
   const clases = [
     "btn",
     fuerte && "btn--fuerte",
@@ -27,6 +31,7 @@ export function Button({
   ].filter(Boolean).join(" ");
   return (
     <button
+      ref={ref}
       className={clases}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
@@ -41,4 +46,4 @@ export function Button({
       {!loading && rightIcon}
     </button>
   );
-}
+});

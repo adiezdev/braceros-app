@@ -17,7 +17,7 @@
 .rejilla th.th-check { width:34px; }
 .rejilla th.th-bloque { width:100px; }
 .rejilla th.th-tel { width:110px; }
-.rejilla th.th-acc { width:130px; }
+.rejilla th.th-acc { width:1%; }
 .rejilla tbody td { padding:2px 8px; border-bottom:1px solid var(--borde-suave);
   vertical-align:middle; transition:background-color .15s ease; }
 .rejilla tbody tr:hover td { background:var(--hover-fila); }
@@ -52,14 +52,6 @@
 .acc button:disabled:hover { border-color:transparent; color:var(--suave);
   background:none; }
 
-/* reveal de acciones al pasar el ratón (solo escritorio) */
-@media (min-width:761px) {
-  .rejilla tbody tr .acc, .archivados-tabla tbody tr .acc { opacity:0;
-    transition:opacity .15s ease; }
-  .rejilla tbody tr:hover .acc, .archivados-tabla tbody tr:hover .acc,
-  .acc:focus-within { opacity:1; }
-}
-
 /* columna de selección múltiple */
 .th-check input, .td-check input { width:15px; height:15px; cursor:pointer;
   accent-color:var(--burdeos); margin:0; vertical-align:middle; }
@@ -75,9 +67,11 @@
   color:var(--laton); font-weight:600; top:3px; }
 
 @media (max-width:760px) {
-  .rejilla th.th-acc, .acc { min-width:120px; }
   .acc button { min-width:40px; min-height:40px; }
   .rejilla--hermanos { min-width:0; width:100%; }
-  .td-nombre { min-width:200px; }
+  .td-nombre { min-width: 115vw; }
   .td-nombre .txt { white-space:normal; }
+  .rejilla--hermanos .th-tel, .rejilla--hermanos .th-obs,
+  .rejilla--hermanos .td-tel, .rejilla--hermanos .td-obs { display:none; }
+  .rejilla--hermanos .th-bloque { width:70px; }
 }

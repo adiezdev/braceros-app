@@ -1,3 +1,4 @@
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { ChevronDown, ChevronUp, CornerDownRight, Trash2 } from "lucide-react";
 import React from "react";
 
@@ -6,6 +7,7 @@ import { esBloque } from "../lib/modelo";
 import type { Hermano } from "../types";
 import { LineaCupo } from "./LineaCupo";
 import { Input } from "./ui/Input";
+import { MenuFila } from "./ui/MenuFila";
 import { Select } from "./ui/Select";
 
 export interface EdicionNumero {
@@ -110,7 +112,7 @@ function FilaHermanoInner({
             onChange={(e) => onCambiarCampo(h.id, "nombre", e.target.value)}
           />
         </td>
-        <td>
+        <td className="td-bloque">
           <Select
             className={`sel--${h.bloque.toLowerCase()}`}
             value={h.bloque}
@@ -126,48 +128,50 @@ function FilaHermanoInner({
             ))}
           </Select>
         </td>
-        <td>
+        <td className="td-tel">
           <Input
             className="txt--corto"
             value={h.telefono}
             onChange={(e) => onCambiarCampo(h.id, "telefono", e.target.value)}
           />
         </td>
-        <td>
+        <td className="td-obs">
           <Input
             value={h.notas}
             onChange={(e) => onCambiarCampo(h.id, "notas", e.target.value)}
           />
         </td>
         <td className="acc">
-          <button
-            onClick={() => onMover(i, -1)}
-            disabled={!conRaya || i === 0}
-            title="Subir un puesto"
-          >
-            <ChevronUp size={17} />
-          </button>
-          <button
-            onClick={() => onMover(i, 1)}
-            disabled={!conRaya || i === totalHermanos - 1}
-            title="Bajar un puesto"
-          >
-            <ChevronDown size={17} />
-          </button>
-          <button
-            onClick={() => onInsertarDebajo(i)}
-            disabled={!conRaya}
-            title="Insertar un hermano debajo"
-          >
-            <CornerDownRight size={17} />
-          </button>
-          <button
-            className="acc--peligro"
-            onClick={() => onBorrar(h.id, h.nombre)}
-            title="Quitar de la lista"
-          >
-            <Trash2 size={17} />
-          </button>
+          <MenuFila>
+            <DropdownMenu.Item
+              className="menu__item"
+              onSelect={() => onMover(i, -1)}
+              disabled={!conRaya || i === 0}
+            >
+              <ChevronUp size={15} /> Subir un puesto
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              className="menu__item"
+              onSelect={() => onMover(i, 1)}
+              disabled={!conRaya || i === totalHermanos - 1}
+            >
+              <ChevronDown size={15} /> Bajar un puesto
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              className="menu__item"
+              onSelect={() => onInsertarDebajo(i)}
+              disabled={!conRaya}
+            >
+              <CornerDownRight size={15} /> Insertar hermano debajo
+            </DropdownMenu.Item>
+            <DropdownMenu.Separator className="menu__sep" />
+            <DropdownMenu.Item
+              className="menu__item menu__item--peligro"
+              onSelect={() => onBorrar(h.id, h.nombre)}
+            >
+              <Trash2 size={15} /> Quitar de la lista
+            </DropdownMenu.Item>
+          </MenuFila>
         </td>
       </tr>
       {mostrarRaya && i + 1 === cupo && (

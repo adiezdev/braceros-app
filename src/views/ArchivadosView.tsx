@@ -1,11 +1,12 @@
 import type { Dispatch, SetStateAction } from "react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { RotateCcw } from "lucide-react";
 
 import { useBorrarPermanente } from "../hooks/useBorrarPermanente";
 import { useReactivar } from "../hooks/useReactivar";
 import { useSeleccion } from "../hooks/useSeleccion";
 import { BulkBar } from "../components/BulkBar";
-import { Button } from "../components/ui/Button";
+import { MenuFila } from "../components/ui/MenuFila";
 import type { Estado } from "../types";
 
 interface Props {
@@ -64,7 +65,7 @@ export function ArchivadosView({ est, setEst }: Props) {
             <th className="th-num">Nº</th>
             <th>Nombre</th>
             <th className="th-bloque">Bloque</th>
-            <th className="th-acc">Acciones</th>
+            <th className="th-acc" aria-label="Acciones" title="Acciones" />
           </tr>
         </thead>
         <tbody>
@@ -82,13 +83,14 @@ export function ArchivadosView({ est, setEst }: Props) {
               <td className="archivados-nombre">{a.nombre}</td>
               <td>{a.bloque}</td>
               <td className="acc">
-                <Button
-                  fino
-                  onClick={() => void reactivar(a.id, a.nombre)}
-                  title="Reactivar: vuelve a la lista activa"
-                >
-                  <RotateCcw size={13} /> Reactivar
-                </Button>
+                <MenuFila>
+                  <DropdownMenu.Item
+                    className="menu__item"
+                    onSelect={() => void reactivar(a.id, a.nombre)}
+                  >
+                    <RotateCcw size={15} /> Reactivar
+                  </DropdownMenu.Item>
+                </MenuFila>
               </td>
             </tr>
           ))}

@@ -153,3 +153,14 @@
 .menu__item[data-highlighted] { background:var(--hover-claro); color:var(--burdeos); }
 .menu__item:focus-visible { outline:2px solid var(--burdeos); outline-offset:1px; }
 .menu__item svg { flex:0 0 auto; }
+.menu__item[data-disabled] { opacity:.4; cursor:not-allowed; }
+.menu__item--peligro { color:var(--rojo); }
+.menu__item--peligro:hover { color:var(--rojo); }
+.menu__sep { height:1px; margin:5px 4px; background:var(--filete); }
+
+/* botón ⋮ de las acciones de fila */
+.fila-mas { display:flex; align-items:center; justify-content:center;
+  border:1px solid transparent; background:none; cursor:pointer;
+  color:var(--suave); padding:5px; border-radius:var(--radius-sm); }
+.fila-mas:hover { border-color:var(--filete); color:var(--burdeos); background:var(--panel); }
+.fila-mas:disabled { opacity:.3; cursor:not-allowed; }

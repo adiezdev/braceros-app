@@ -2,7 +2,7 @@
 
 .archivados-tabla { font-size:var(--fs-sm); }
 
-.archivados-tabla th.th-acc { width:130px; }
+.archivados-tabla th.th-acc { width:1%; }
 .archivados-tabla th.th-num { width:44px; text-align:right; }
 .archivados-tabla th.th-bloque { width:100px; }
 
@@ -12,7 +12,3 @@
 .archivados-tabla tbody tr:hover td { background:var(--hover-fila); }
 
 .archivados-tabla .acc { white-space:nowrap; }
-
-@media (max-width:760px) {
-  .archivados-tabla .acc { min-width:120px; }
-}
