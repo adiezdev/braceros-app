@@ -2,7 +2,7 @@
  * columna de selección múltiple y la raya de latón del cupo. */
 
 .lienzo { background:var(--panel); border:1px solid var(--filete); overflow:auto;
-  overflow-x:auto; max-height:70vh; position:relative; }
+  overflow-x:auto; max-height:85vh; position:relative; }
 .rejilla { border-collapse:separate; border-spacing:0; width:100%; font-size:var(--fs-sm); }
 .rejilla--hermanos { min-width:640px; }
 .rejilla--cuotas { min-width:500px; }

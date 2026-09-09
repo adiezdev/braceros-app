@@ -29,7 +29,6 @@ export function Sidebar({ actual, onIr, abierta, onCerrar }: Props) {
     <>
       {abierta && <div className="sidebar__fondo" onClick={onCerrar} />}
       <aside className={`sidebar ${abierta ? "sidebar--abierta" : ""}`}>
-        <p className="sidebar__rama">Listas</p>
         <nav className="sidebar__nav">
           {SECCIONES.map(([k, etiqueta, Icono]) => (
             <button
@@ -43,9 +42,6 @@ export function Sidebar({ actual, onIr, abierta, onCerrar }: Props) {
             </button>
           ))}
         </nav>
-        <p className="sidebar__pie">
-          La raya de latón marca el cupo. Pulsa un nombre para editarlo.
-        </p>
       </aside>
     </>
   );
