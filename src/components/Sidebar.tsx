@@ -2,7 +2,9 @@ import {
   Archive,
   CalendarCheck,
   CircleDollarSign,
+  ClipboardList,
   Printer,
+  Settings,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -22,6 +24,8 @@ const SECCIONES: [Pestana, string, LucideIcon][] = [
   ["asistencias", "Asistencias", CalendarCheck],
   ["archivados", "Archivados", Archive],
   ["imprimir", "Listado en papel", Printer],
+  ["lista", "Lista", ClipboardList],
+  ["configuracion", "Configuración", Settings],
 ];
 
 export function Sidebar({ actual, onIr, abierta, onCerrar }: Props) {

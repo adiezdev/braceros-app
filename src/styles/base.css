@@ -99,6 +99,28 @@
   font-size:var(--fs-base) !important; color:var(--suave); }
 .vacio__acciones { display:flex; gap:8px; justify-content:center; margin-top:16px; }
 
+/* vistas de acciones: Lista y Configuración */
+.vista-acciones { max-width:520px; padding:8px 4px; display:flex;
+  flex-direction:column; gap:12px; }
+.vista-acciones__cabecera h2 { font-family:'Poppins',Arial,sans-serif;
+  font-size:var(--fs-xl); font-weight:700; margin:0 0 2px; color:var(--tinta); }
+.vista-acciones__cabecera p { margin:0 0 8px; color:var(--suave);
+  font-size:var(--fs-sm); }
+.vista-acciones__botones { display:flex; flex-direction:column; gap:10px;
+  max-width:360px; }
+.vista-acciones__botones .btn { justify-content:flex-start; width:100%;
+  padding:11px 16px; font-size:var(--fs-base); }
+
+/* fila de configuración: etiqueta a la izquierda, control a la derecha */
+.vista-fila { display:flex; align-items:center; justify-content:space-between;
+  gap:16px; background:var(--panel); border:1px solid var(--filete);
+  border-radius:var(--radius-md); padding:13px 14px; box-shadow:var(--shadow-sm); }
+.vista-fila__texto { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.vista-fila__etiqueta { font-size:var(--fs-base); font-weight:500;
+  color:var(--tinta); }
+.vista-fila__detalle { font-size:var(--fs-xs); color:var(--suave); }
+.vista-fila .btn { flex:0 0 auto; white-space:nowrap; }
+
 /* pie fijo con el indicador de guardado */
 .pie { margin-top:14px; font-size:var(--fs-xs); color:var(--suave);
   display:flex; flex-wrap:wrap; gap:4px 14px; align-items:baseline; }

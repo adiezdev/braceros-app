@@ -1,5 +1,4 @@
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Download, LogOut, Menu, Maximize, Minimize, Moon, MoreHorizontal, Plus, RotateCcw, Search, Sun, Upload, X } from "lucide-react";
+import { LogOut, Menu, Plus, RotateCcw, Search, X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { Aviso } from "./components/Aviso";
@@ -22,6 +21,8 @@ import { useMediaQuery } from "./hooks/useMediaQuery";
 import { useTema } from "./hooks/useTema";
 import type { CfgImpresion, Pestana } from "./types";
 import { ArchivadosView } from "./views/ArchivadosView";
+import { ConfigView } from "./views/ConfigView";
+import { ListaView } from "./views/ListaView";
 
 const TEXTO_CONEXION: Record<Conexion, string> = {
   cargando: "Cargando…",
@@ -50,7 +51,7 @@ export default function App() {
 
 function AppAutenticado({ onLogout }: { onLogout: () => void }) {
   const { est, setEst, reemplazar, conexion, error, recargar } = useEstadoRemoto();
-  const { ocultar, activo, alternar } = usePantallaCompleta();
+  const { ocultar, alternar } = usePantallaCompleta();
   const tema = useTema();
 
   const [pestana, setPestana] = useState<Pestana>("hermanos");
@@ -152,76 +153,9 @@ function AppAutenticado({ onLogout }: { onLogout: () => void }) {
           >
             <Menu size={16} />
           </Button>
-          {esMovil ? (
-            <>
-              <Button fuerte onClick={() => { setGuardando(true); void exportar().finally(() => setGuardando(false)); }} disabled={guardando}>
-                {guardando ? <span className="btn__spinner" aria-hidden="true" /> : <Download size={15} />}
-                {guardando ? "Guardando…" : "Guardar"}
-              </Button>
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger asChild>
-                  <Button fino className="cabecera__mas" title="Más acciones" aria-label="Más acciones">
-                    <MoreHorizontal size={16} />
-                  </Button>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content className="menu" align="end" sideOffset={6}>
-                  <DropdownMenu.Item className="menu__item" onSelect={() => tema.alternar()}>
-                    {tema.tema === "dark" ? <Sun size={15} /> : <Moon size={15} />}
-                    {tema.tema === "dark" ? "Tema claro" : "Tema oscuro"}
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item className="menu__item" onSelect={() => { setGuardando(true); void restaurar().finally(() => setGuardando(false)); }}>
-                    <RotateCcw size={15} /> Restaurar lista
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item className="menu__item" onSelect={alternar}>
-                    {activo ? <Minimize size={15} /> : <Maximize size={15} />}
-                    Pantalla completa
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item className="menu__item" onSelect={() => inputRef.current?.click()}>
-                    <Upload size={15} /> Cargar otro Excel
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Separator className="menu__sep" />
-                  <DropdownMenu.Item className="menu__item menu__item--peligro" onSelect={onLogout}>
-                    <LogOut size={15} /> Cerrar sesión
-                  </DropdownMenu.Item>
-                </DropdownMenu.Content>
-              </DropdownMenu.Root>
-            </>
-          ) : (
-            <>
-              <Button
-                fino
-                onClick={tema.alternar}
-                title={tema.tema === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-              >
-                {tema.tema === "dark" ? <Sun size={15} /> : <Moon size={15} />}
-                {tema.tema === "dark" ? "Tema claro" : "Tema oscuro"}
-              </Button>
-              <Button fuerte onClick={() => { setGuardando(true); void exportar().finally(() => setGuardando(false)); }} disabled={guardando}>
-                <Download size={15} /> {guardando ? "Guardando…" : "Guardar Excel"}
-              </Button>
-              <Button onClick={() => { setGuardando(true); void restaurar().finally(() => setGuardando(false)); }} disabled={guardando} title="Volver a la lista transcrita">
-                <RotateCcw size={15} /> Restaurar lista
-              </Button>
-              <Button
-                fino
-                onClick={alternar}
-                title={activo ? "Salir de pantalla completa" : "Pantalla completa: oculta el resumen y gana espacio"}
-              >
-                {activo ? <Minimize size={15} /> : <Maximize size={15} />}
-                Pantalla completa
-              </Button>
-              <Button
-                fino
-                onClick={() => inputRef.current?.click()}
-                title="Sustituir todo por el contenido de un Excel"
-              >
-                <Upload size={15} /> Cargar otro Excel
-              </Button>
-              <Button fino onClick={onLogout} title="Cerrar sesión">
-                <LogOut size={15} /> Salir
-              </Button>
-            </>
-          )}
+          <Button fino onClick={onLogout} title="Cerrar sesión">
+            <LogOut size={15} /> Salir
+          </Button>
         </div>
       </header>
 
@@ -237,7 +171,7 @@ function AppAutenticado({ onLogout }: { onLogout: () => void }) {
 
           {!ocultar && <Resumen est={est} />}
 
-          {pestana !== "imprimir" && pestana !== "archivados" && (
+          {pestana !== "imprimir" && pestana !== "archivados" && pestana !== "lista" && pestana !== "configuracion" && (
         <div className="barra">
           <label className="buscador">
             <Search size={15} />
@@ -281,7 +215,7 @@ function AppAutenticado({ onLogout }: { onLogout: () => void }) {
       )}
 
       <main className="lienzo">
-        {vacia && pestana !== "imprimir" ? (
+        {vacia && pestana !== "imprimir" && pestana !== "lista" && pestana !== "configuracion" ? (
           <div className="vacio">
             <p>No queda nadie en la lista.</p>
             <p className="vacio__ayuda">
@@ -307,6 +241,22 @@ function AppAutenticado({ onLogout }: { onLogout: () => void }) {
             {pestana === "imprimir" && (
               <PanelImpresion est={est} cfg={cfgImpr} setCfg={setCfgImpr} />
             )}
+            {pestana === "lista" && (
+              <ListaView
+                onExportar={() => { setGuardando(true); void exportar().finally(() => setGuardando(false)); }}
+                onRestaurar={() => { setGuardando(true); void restaurar().finally(() => setGuardando(false)); }}
+                onCargarExcel={() => inputRef.current?.click()}
+                guardando={guardando}
+              />
+            )}
+            {pestana === "configuracion" && (
+              <ConfigView
+                tema={tema.tema}
+                onAlternarTema={tema.alternar}
+                ocultar={ocultar}
+                onAlternarPantalla={alternar}
+              />
+            )}
           </>
         )}
       </main>
@@ -321,7 +271,9 @@ function AppAutenticado({ onLogout }: { onLogout: () => void }) {
         </div>
       </div>
 
-      {pestana !== "imprimir" && <FabFoto onClick={() => setVolcadoFoto(true)} />}
+      {pestana !== "imprimir" && pestana !== "lista" && pestana !== "configuracion" && (
+        <FabFoto onClick={() => setVolcadoFoto(true)} />
+      )}
     </div>
   );
 }

@@ -45,6 +45,9 @@ export function Login({ onLogin, onLogout, username, error, cargando }: Props) {
         <img src={escudo} alt="" className="login__escudo" />
         <h1 className="login__titulo">{ENTIDAD}</h1>
         <p className="login__sub">Acceso restringido a miembros</p>
+
+        {error && <p className="login__error">{error}</p>}
+
         <label className="campo">
           Usuario
           <input
