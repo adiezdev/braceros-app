@@ -63,7 +63,7 @@ export function TablaOrden({ est, setEst, filtro }: Props) {
               />
             </th>
             <th className="th-num">Nº</th>
-            <th>Nombre completo</th>
+            <th className="th-nombre">Nombre completo</th>
             <th className="th-bloque">Bloque</th>
             <th className="th-tel">Teléfono</th>
             <th className="th-obs">Observaciones</th>

@@ -1,11 +1,12 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Download, Maximize, Minimize, Moon, MoreHorizontal, Plus, RotateCcw, Search, Sun, Upload, X } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { Download, Menu, Maximize, Minimize, Moon, MoreHorizontal, Plus, RotateCcw, Search, Sun, Upload, X } from "lucide-react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { Aviso } from "./components/Aviso";
 import { FabFoto } from "./components/FabFoto";
 import { PanelImpresion } from "./components/PanelImpresion";
 import { Resumen } from "./components/Resumen";
+import { Sidebar } from "./components/Sidebar";
 import { TablaAsistencias } from "./components/TablaAsistencias";
 import { TablaCuotas } from "./components/TablaCuotas";
 import { TablaOrden } from "./components/TablaOrden";
@@ -20,14 +21,6 @@ import { useTema } from "./hooks/useTema";
 import type { CfgImpresion, Pestana } from "./types";
 import { ArchivadosView } from "./views/ArchivadosView";
 
-const PESTANAS: [Pestana, string][] = [
-  ["hermanos", "Hermanos"],
-  ["cuotas", "Cuotas"],
-  ["asistencias", "Asistencias"],
-  ["archivados", "Archivados"],
-  ["imprimir", "Listado en papel"],
-];
-
 const TEXTO_CONEXION: Record<Conexion, string> = {
   cargando: "Cargando…",
   guardando: "Guardando…",
@@ -41,10 +34,11 @@ export default function App() {
   const tema = useTema();
 
   const [pestana, setPestana] = useState<Pestana>("hermanos");
+  const esMovil = useMediaQuery("(max-width: 760px)");
+  const [navAbierta, setNavAbierta] = useState(() => !esMovil);
   const [filtro, setFiltro] = useState("");
   const [volcadoFoto, setVolcadoFoto] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const esMovil = useMediaQuery("(max-width: 760px)");
 
   const [guardando, setGuardando] = useState(false);
   const [cfgImpr, setCfgImpr] = useState<CfgImpresion>({
@@ -69,6 +63,11 @@ export default function App() {
     if (!est) return [];
     return pestana === "cuotas" ? est.aniosCuotas : est.aniosAsis;
   }, [pestana, est]);
+
+  const irA = useCallback((k: Pestana) => {
+    setPestana(k);
+    setNavAbierta(false);
+  }, []);
 
   /* --- pantalla de carga ------------------------------------------ */
   if (!est) {
@@ -125,6 +124,14 @@ export default function App() {
               e.target.value = "";
             }}
           />
+          <Button
+            fino
+            onClick={() => setNavAbierta((v) => !v)}
+            aria-label={navAbierta ? "Contraer el menú de secciones" : "Abrir el menú de secciones"}
+            title="Menú de secciones"
+          >
+            <Menu size={16} />
+          </Button>
           {esMovil ? (
             <>
               <Button fuerte onClick={() => { setGuardando(true); void exportar().finally(() => setGuardando(false)); }} disabled={guardando}>
@@ -191,28 +198,19 @@ export default function App() {
         </div>
       </header>
 
-      {conexion === "error" && (
-        <Aviso tono="error" onCerrar={recargar}>
-          {error ?? "Sin conexión con el servidor."} Lo que cambies ahora se
-          reintenta solo; no cierres la pestaña hasta que vuelva.
-        </Aviso>
-      )}
+      <div className="app__cuerpo">
+        <Sidebar actual={pestana} onIr={irA} abierta={navAbierta} onCerrar={() => setNavAbierta(false)} />
+        <div className="app__central">
+          {conexion === "error" && (
+            <Aviso tono="error" onCerrar={recargar}>
+              {error ?? "Sin conexión con el servidor."} Lo que cambies ahora se
+              reintenta solo; no cierres la pestaña hasta que vuelva.
+            </Aviso>
+          )}
 
-      {!ocultar && <Resumen est={est} />}
+          {!ocultar && <Resumen est={est} />}
 
-      <nav className="pestanas">
-        {PESTANAS.map(([k, t]) => (
-          <button
-            key={k}
-            className={`pest ${pestana === k ? "pest--activa" : ""}`}
-            onClick={() => setPestana(k)}
-          >
-            {t}
-          </button>
-        ))}
-      </nav>
-
-      {pestana !== "imprimir" && pestana !== "archivados" && (
+          {pestana !== "imprimir" && pestana !== "archivados" && (
         <div className="barra">
           <label className="buscador">
             <Search size={15} />
@@ -293,6 +291,8 @@ export default function App() {
           cuando quieras una copia fuera de aquí.
         </span>
       </footer>
+        </div>
+      </div>
 
       {pestana !== "imprimir" && <FabFoto onClick={() => setVolcadoFoto(true)} />}
     </div>

@@ -68,8 +68,13 @@
 
 @media (max-width:760px) {
   .acc button { min-width:40px; min-height:40px; }
-  .rejilla--hermanos { min-width:0; width:100%; }
-  .td-nombre { min-width: 115vw; }
-  .td-nombre .txt { white-space:normal; } 
-  .rejilla--hermanos .th-bloque { width:70px; }
+  .rejilla.rejilla--hermanos { min-width:0; width:100%; table-layout:fixed; }
+  .rejilla.rejilla--hermanos th.th-check { width:9.5%; }
+  .rejilla.rejilla--hermanos th.th-num { width:11%; }
+  .rejilla.rejilla--hermanos th.th-bloque { width:21%; }
+  .rejilla.rejilla--hermanos th.th-acc { width:11%; }
+  .rejilla.rejilla--hermanos th.th-nombre { width:47.5%; white-space:normal; }
+  .rejilla.rejilla--hermanos .td-nombre .txt { white-space:normal; word-break:break-word; }
+  .rejilla.rejilla--hermanos th.th-tel, .rejilla.rejilla--hermanos td.td-tel,
+  .rejilla.rejilla--hermanos th.th-obs, .rejilla.rejilla--hermanos td.td-obs { display:none; }
 }
