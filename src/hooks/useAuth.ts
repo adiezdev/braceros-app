@@ -1,15 +1,32 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { notificar } from "../lib/toast";
-import { http, ErrorApi, setToken } from "../services/http";
+import {
+  ErrorApi,
+  guardarSesion,
+  http,
+  limpiarSesionGuardada,
+  sesionGuardada,
+  setToken as setTokenGuardado,
+} from "../services/http";
 
 interface AuthState {
   token: string | null;
   username: string | null;
 }
 
+/** Arranca con la sesión guardada en localStorage: refrescar ya no pide login. */
+function estadoInicial(): AuthState {
+  const guardada = sesionGuardada();
+  if (guardada) {
+    setTokenGuardado(guardada.token);
+    return { token: guardada.token, username: guardada.username };
+  }
+  return { token: null, username: null };
+}
+
 export function useAuth() {
-  const [auth, setAuth] = useState<AuthState>({ token: null, username: null });
+  const [auth, setAuth] = useState<AuthState>(estadoInicial);
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
@@ -21,7 +38,7 @@ export function useAuth() {
         "/api/login",
         { username, password },
       );
-      setToken(data.token);
+      guardarSesion(data.token, data.username);
       setAuth({ token: data.token, username: data.username });
     } catch (e) {
       const msg = e instanceof ErrorApi ? e.message : "No se pudo iniciar sesión.";
@@ -34,8 +51,18 @@ export function useAuth() {
   }, []);
 
   const logout = useCallback(() => {
-    setToken(null);
+    limpiarSesionGuardada();
     setAuth({ token: null, username: null });
+  }, []);
+
+  // Token caducado (401) mientras la app está abierta: vuelve al login solo.
+  useEffect(() => {
+    const alCaducar = () => {
+      limpiarSesionGuardada();
+      setAuth({ token: null, username: null });
+    };
+    window.addEventListener("auth:caducado", alCaducar);
+    return () => window.removeEventListener("auth:caducado", alCaducar);
   }, []);
 
   return { ...auth, login, logout, error, cargando };
