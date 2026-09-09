@@ -1,9 +1,10 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Download, Menu, Maximize, Minimize, Moon, MoreHorizontal, Plus, RotateCcw, Search, Sun, Upload, X } from "lucide-react";
+import { Download, LogOut, Menu, Maximize, Minimize, Moon, MoreHorizontal, Plus, RotateCcw, Search, Sun, Upload, X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { Aviso } from "./components/Aviso";
 import { FabFoto } from "./components/FabFoto";
+import { Login } from "./components/Login";
 import { PanelImpresion } from "./components/PanelImpresion";
 import { Resumen } from "./components/Resumen";
 import { Sidebar } from "./components/Sidebar";
@@ -14,6 +15,7 @@ import { Button } from "./components/ui/Button";
 import { VolcadoFoto } from "./components/VolcadoFoto";
 import { ANIO_BASE, ENTIDAD } from "./constants";
 import { useAccionesApp } from "./hooks/useAccionesApp";
+import { useAuth } from "./hooks/useAuth";
 import { useEstadoRemoto, type Conexion } from "./hooks/useEstadoRemoto";
 import { usePantallaCompleta } from "./hooks/usePantallaCompleta";
 import { useMediaQuery } from "./hooks/useMediaQuery";
@@ -29,6 +31,24 @@ const TEXTO_CONEXION: Record<Conexion, string> = {
 };
 
 export default function App() {
+  const auth = useAuth();
+
+  if (!auth.token) {
+    return (
+      <Login
+        onLogin={auth.login}
+        onLogout={auth.logout}
+        username={auth.username}
+        error={auth.error}
+        cargando={auth.cargando}
+      />
+    );
+  }
+
+  return <AppAutenticado onLogout={auth.logout} />;
+}
+
+function AppAutenticado({ onLogout }: { onLogout: () => void }) {
   const { est, setEst, reemplazar, conexion, error, recargar } = useEstadoRemoto();
   const { ocultar, activo, alternar } = usePantallaCompleta();
   const tema = useTema();
@@ -159,6 +179,10 @@ export default function App() {
                   <DropdownMenu.Item className="menu__item" onSelect={() => inputRef.current?.click()}>
                     <Upload size={15} /> Cargar otro Excel
                   </DropdownMenu.Item>
+                  <DropdownMenu.Separator className="menu__sep" />
+                  <DropdownMenu.Item className="menu__item menu__item--peligro" onSelect={onLogout}>
+                    <LogOut size={15} /> Cerrar sesión
+                  </DropdownMenu.Item>
                 </DropdownMenu.Content>
               </DropdownMenu.Root>
             </>
@@ -192,6 +216,9 @@ export default function App() {
                 title="Sustituir todo por el contenido de un Excel"
               >
                 <Upload size={15} /> Cargar otro Excel
+              </Button>
+              <Button fino onClick={onLogout} title="Cerrar sesión">
+                <LogOut size={15} /> Salir
               </Button>
             </>
           )}

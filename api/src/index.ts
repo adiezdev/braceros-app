@@ -1,16 +1,23 @@
 import Fastify from "fastify";
+import jwt from "@fastify/jwt";
 
+import { authRoutes } from "./auth.js";
 import { enTransaccion, esperarBase, migrar, pool } from "./db.js";
 import { leerEstado, versionActual } from "./estado.js";
 import { transcribir, type TipoFoto } from "./gemini.js";
 import { aplicar, ErrorPeticion, resumir } from "./operaciones.js";
 import type { Operacion } from "./tipos.js";
 
+if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET is required");
+
 const app = Fastify({
   logger: { level: process.env.LOG_LEVEL ?? "info" },
   // "Cargar otro Excel" manda la lista entera en una sola petición.
   bodyLimit: 8 * 1024 * 1024,
 });
+
+await app.register(jwt, { secret: process.env.JWT_SECRET, sign: { expiresIn: "7d" } });
+await app.register(authRoutes);
 
 /** Para el healthcheck del compose. No toca la base. */
 app.get("/api/salud", async () => ({ ok: true }));
@@ -21,7 +28,7 @@ app.get("/api/salud", async () => ({ ok: true }));
  */
 app.get("/api/version", async () => ({ version: await versionActual() }));
 
-app.get("/api/estado", async () => {
+app.get("/api/estado", { preValidation: [async (req) => { await req.jwtVerify(); }] }, async () => {
   // Una sola transacción para que la versión y el estado que devolvemos
   // sean la misma foto, y no una mezcla de dos instantes.
   return enTransaccion(async (c) => ({
@@ -30,7 +37,7 @@ app.get("/api/estado", async () => {
   }));
 });
 
-app.post<{ Body: { ops?: Operacion[] } }>("/api/cambios", async (req, reply) => {
+app.post<{ Body: { ops?: Operacion[] } }>("/api/cambios", { preValidation: [async (req) => { await req.jwtVerify(); }] }, async (req, reply) => {
   const ops = req.body?.ops;
   if (!Array.isArray(ops)) throw new ErrorPeticion("falta la lista de operaciones");
   if (!ops.length) return { version: await versionActual() };
@@ -54,16 +61,19 @@ app.post<{ Body: { ops?: Operacion[] } }>("/api/cambios", async (req, reply) => 
  * manda a Gemini para leer las marcas de la tabla. La API key de Gemini vive
  * aquí (variable de entorno), nunca en el navegador. La imagen sale a Google.
  */
-app.post<{ Body: { imagenBase64?: string; columna?: number; tipo?: TipoFoto } }>("/api/foto", async (req) => {
+app.post<{ Body: { imagenBase64?: string; columna?: number; tipo?: TipoFoto } }>("/api/foto", { preValidation: [async (req) => { await req.jwtVerify(); }] }, async (req) => {
   const tipo: TipoFoto = req.body?.tipo === "cuotas" ? "cuotas" : "asistencia";
   const filas = await transcribir(req.body?.imagenBase64 ?? "", req.body?.columna ?? 0, tipo);
   return { filas };
 });
 
-app.setErrorHandler((err, _req, reply) => {
+app.setErrorHandler((err: { code?: string; message: string }, _req, reply) => {
   if (err instanceof ErrorPeticion) {
     app.log.warn({ err: err.message }, "petición rechazada");
     return reply.code(err.codigo).send({ error: err.message });
+  }
+  if (err.code === "FST_JWT_AUTHORIZATION_TOKEN_EXPIRED" || err.code === "FST_JWT_AUTHORIZATION_TOKEN_UNAUTHORIZED") {
+    return reply.code(401).send({ error: "no autenticado" });
   }
   app.log.error(err);
   return reply.code(500).send({ error: "error interno" });

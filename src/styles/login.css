@@ -1,0 +1,121 @@
+/* ------------------------------------------------------------------ *
+ * Login
+ * Pantalla de acceso. Hereda los tokens de .app (via login-root) y
+ * centra la tarjeta en viewport. El escudo de la agrupación es el
+ * elemento memorable: no hay icono genérico.
+ * ------------------------------------------------------------------ */
+
+.login-root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login__card {
+  width: min(400px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--filete);
+  border-top: 3px solid var(--burdeos);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 40px 36px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* --- escudo --- */
+.login__escudo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 1px 2px rgba(28, 24, 20, .12));
+}
+
+/* --- texto --- */
+.login__titulo {
+  font-family: 'Poppins', Arial, sans-serif;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  text-align: center;
+  margin: 0;
+  color: var(--tinta);
+  line-height: 1.25;
+}
+
+.login__sub {
+  text-align: center;
+  color: var(--suave);
+  font-size: var(--fs-sm);
+  margin: 0 0 16px;
+}
+
+/* --- error --- */
+.login__error {
+  width: 100%;
+  color: var(--rojo);
+  font-size: var(--fs-sm);
+  text-align: center;
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--celda-rojo);
+  border: 1px solid var(--rojo);
+  border-radius: var(--radius-sm);
+}
+
+/* --- campos --- */
+.login__card .campo {
+  width: 100%;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.login__campo {
+  font: inherit;
+  width: 100%;
+  border: 1px solid var(--filete);
+  background: var(--papel);
+  padding: 10px 12px;
+  color: var(--tinta);
+  border-radius: var(--radius-sm);
+  font-family: 'Poppins', Arial, sans-serif;
+  font-size: var(--fs-base);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.login__campo:hover {
+  border-color: var(--suave);
+}
+
+.login__campo:focus {
+  border-color: var(--burdeos);
+  box-shadow: 0 0 0 2px var(--hover-claro);
+  outline: none;
+}
+
+/* --- botón --- */
+.login__card .btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: 8px;
+  padding: 10px 16px;
+  font-size: var(--fs-md);
+}
+
+/* --- responsive --- */
+@media (max-width: 480px) {
+  .login__card {
+    padding: 32px 24px 24px;
+    border-top-width: 2px;
+  }
+
+  .login__escudo {
+    width: 60px;
+    height: 60px;
+  }
+}

@@ -10,10 +10,25 @@ export class ErrorApi extends Error {
   }
 }
 
+let _token: string | null = null;
+
+export function setToken(token: string | null): void {
+  _token = token;
+}
+
+export function getToken(): string | null {
+  return _token;
+}
+
 export const http = axios.create({
   baseURL: "/",
   timeout: 15_000,
   headers: { "Content-Type": "application/json" },
+});
+
+http.interceptors.request.use((config) => {
+  if (_token) config.headers.Authorization = `Bearer ${_token}`;
+  return config;
 });
 
 http.interceptors.response.use(
