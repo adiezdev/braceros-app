@@ -68,7 +68,7 @@
 .impresion td { border:1px solid #B8B2AA; padding:2px 5px; height:17px; }
 .impresion td.num { text-align:center; color:#000; }
 /* nombres más grandes; las casillas de estado ocupan poco */
-.impresion td:nth-child(2) { font-size: 13px; }
+.impresion td:nth-child(2) { font-size: 13px; white-space:nowrap; }
 .impresion th:nth-child(n+3), .impresion td:nth-child(n+3) { width:23mm; }
 .impresion th.imp-txt, .impresion td.imp-txt { width:auto; text-align:left; }
 .impresion td.imp-txt { white-space:pre-wrap; word-break:break-word; }

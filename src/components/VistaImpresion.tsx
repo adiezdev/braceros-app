@@ -59,10 +59,14 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
           ...aniosNuevos.map((a) => hermano.cuotas?.[a] ?? ""),
         ];
 
-  const textoOpcional = (hermano: Hermano): string[] => [
-    ...(telefono ? [hermano.telefono] : []),
-    ...(observaciones ? [hermano.notas] : []),
-  ];
+  /** Texto opcional del apartado hermanos, solo en asistencias. */
+  const textoOpcional = (hermano: Hermano): string[] =>
+    tipo !== "asistencias"
+      ? []
+      : [
+          ...(telefono ? [hermano.telefono] : []),
+          ...(observaciones ? [hermano.notas] : []),
+        ];
 
   /** Color de la casilla según el estado: verde = sí/vino, rojo = no/falta,
       ámbar = falta justificada. */
@@ -75,14 +79,8 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
           ? "num imp--just"
           : "num";
 
-  /** Índices de las columnas opcionales de texto (asistencias): teléfono y observaciones. */
-  const columnasTexto = (() => {
-    if (tipo !== "asistencias") return new Set<number>();
-    const s = new Set<number>();
-    if (telefono) s.add(2);
-    if (observaciones) s.add(3);
-    return s;
-  })();
+  const esColumnaTexto = (c: string): boolean =>
+    c === "Teléfono" || c === "Observaciones";
 
   const portada = (
     <section className="impresion__portada">
@@ -120,8 +118,8 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
         <table>
           <thead>
             <tr>
-              {cabecera.map((c, i) => (
-                <th key={c} className={columnasTexto.has(i) ? "imp-txt" : undefined}>
+              {cabecera.map((c) => (
+                <th key={c} className={esColumnaTexto(c) ? "imp-txt" : undefined}>
                   {c}
                 </th>
               ))}
@@ -134,8 +132,13 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
                 {hermano ? (
                   <>
                     <td>{hermano.nombre}</td>
-                    {[...textoOpcional(hermano), ...valores(hermano)].map((v, j) => (
-                      <td key={j} className={columnasTexto.has(j) ? "imp-txt" : claseCeldaImpresion(v)}>
+                    {textoOpcional(hermano).map((v, j) => (
+                      <td key={`txt-${j}`} className="imp-txt">
+                        {v}
+                      </td>
+                    ))}
+                    {valores(hermano).map((v, j) => (
+                      <td key={j} className={claseCeldaImpresion(v)}>
                         {v}
                       </td>
                     ))}
