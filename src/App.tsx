@@ -87,8 +87,8 @@ function AppAutenticado({ onLogout }: { onLogout: () => void }) {
 
   const irA = useCallback((k: Pestana) => {
     setPestana(k);
-    setNavAbierta(false);
-  }, []);
+    if (esMovil) setNavAbierta(false);
+  }, [esMovil]);
 
   /* --- pantalla de carga ------------------------------------------ */
   if (!est) {

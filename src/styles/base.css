@@ -35,8 +35,8 @@
   .sidebar:not(.sidebar--abierta) .sidebar__etiqueta,
   .sidebar:not(.sidebar--abierta) .sidebar__rama,
   .sidebar:not(.sidebar--abierta) .sidebar__pie { display:none; }
-  .sidebar:not(.sidebar--abierta) .sidebar__item { justify-content:center;
-    gap:0; padding:8px; }
+  .sidebar:not(.sidebar--abierta) .sidebar__item { gap:0;
+    padding:8px 10px; }
   .sidebar:not(.sidebar--abierta) .sidebar__rama { padding:6px 0 2px;
     text-align:center; }
   .sidebar__fondo { display:none; }
