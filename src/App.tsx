@@ -67,6 +67,8 @@ function AppAutenticado({ onLogout }: { onLogout: () => void }) {
     anioAnterior: ANIO_BASE,
     aniosNuevos: [ANIO_BASE + 1],
     blancos: 20,
+    telefono: false,
+    observaciones: false,
   });
 
   const { importar, exportar, restaurar, anadirHermano, anadirAnio, quitarAnio } = useAccionesApp({

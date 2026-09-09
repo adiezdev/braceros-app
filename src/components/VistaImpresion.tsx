@@ -19,7 +19,7 @@ interface Props {
 
 export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
   const { hermanos } = est;
-  const { tipo, anioAnterior, aniosNuevos, blancos } = cfg;
+  const { tipo, anioAnterior, aniosNuevos, blancos, telefono, observaciones } = cfg;
 
   const numeros = useMemo(() => numerosPorBloque(hermanos), [hermanos]);
 
@@ -28,6 +28,8 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
       ? [
           "Nº",
           "Nombre completo",
+          ...(telefono ? ["Teléfono"] : []),
+          ...(observaciones ? ["Observaciones"] : []),
           `${PROCESIONES[0].corto} ${anioAnterior}`,
           `${PROCESIONES[1].corto} ${anioAnterior}`,
           ...aniosNuevos.flatMap((a) => [
@@ -57,6 +59,11 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
           ...aniosNuevos.map((a) => hermano.cuotas?.[a] ?? ""),
         ];
 
+  const textoOpcional = (hermano: Hermano): string[] => [
+    ...(telefono ? [hermano.telefono] : []),
+    ...(observaciones ? [hermano.notas] : []),
+  ];
+
   /** Color de la casilla según el estado: verde = sí/vino, rojo = no/falta,
       ámbar = falta justificada. */
   const claseCeldaImpresion = (v: string): string =>
@@ -67,6 +74,15 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
         : v === "FJ" || v === "J"
           ? "num imp--just"
           : "num";
+
+  /** Índices de las columnas opcionales de texto (asistencias): teléfono y observaciones. */
+  const columnasTexto = (() => {
+    if (tipo !== "asistencias") return new Set<number>();
+    const s = new Set<number>();
+    if (telefono) s.add(2);
+    if (observaciones) s.add(3);
+    return s;
+  })();
 
   const portada = (
     <section className="impresion__portada">
@@ -104,8 +120,10 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
         <table>
           <thead>
             <tr>
-              {cabecera.map((c) => (
-                <th key={c}>{c}</th>
+              {cabecera.map((c, i) => (
+                <th key={c} className={columnasTexto.has(i) ? "imp-txt" : undefined}>
+                  {c}
+                </th>
               ))}
             </tr>
           </thead>
@@ -116,8 +134,8 @@ export function VistaImpresion({ est, cfg, paraImpresion = false }: Props) {
                 {hermano ? (
                   <>
                     <td>{hermano.nombre}</td>
-                    {valores(hermano).map((v, j) => (
-                      <td key={j} className={claseCeldaImpresion(v)}>
+                    {[...textoOpcional(hermano), ...valores(hermano)].map((v, j) => (
+                      <td key={j} className={columnasTexto.has(j) ? "imp-txt" : claseCeldaImpresion(v)}>
                         {v}
                       </td>
                     ))}

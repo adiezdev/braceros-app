@@ -93,6 +93,9 @@ export interface CfgImpresion {
   anioAnterior: number;
   aniosNuevos: number[];
   blancos: number;
+  /** Solo en asistencias: columnas opcionales del apartado hermanos. */
+  telefono: boolean;
+  observaciones: boolean;
 }
 
 export type Pestana = "hermanos" | "cuotas" | "asistencias" | "archivados" | "imprimir" | "lista" | "configuracion";

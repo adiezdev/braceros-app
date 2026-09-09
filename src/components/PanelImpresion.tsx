@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { Button } from "./ui/Button";
 import { Campo } from "./ui/Campo";
+import { Checkbox } from "./ui/Input";
 import type { CfgImpresion, Estado, TipoListado } from "../types";
 import { VistaImpresion } from "./VistaImpresion";
 
@@ -115,6 +116,31 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
               }
             />
           </Campo>
+
+          {cfg.tipo === "asistencias" && (
+            <Campo etiqueta="Columnas opcionales">
+              <span className="opc-impresion">
+                <label className="opc-impresion__item">
+                  <Checkbox
+                    checked={cfg.telefono}
+                    onChange={(e) =>
+                      setCfg((c) => ({ ...c, telefono: e.target.checked }))
+                    }
+                  />
+                  Teléfono
+                </label>
+                <label className="opc-impresion__item">
+                  <Checkbox
+                    checked={cfg.observaciones}
+                    onChange={(e) =>
+                      setCfg((c) => ({ ...c, observaciones: e.target.checked }))
+                    }
+                  />
+                  Observaciones
+                </label>
+              </span>
+            </Campo>
+          )}
 
           <Button fuerte onClick={imprimir}>
             <Printer size={15} /> Imprimir o guardar en PDF

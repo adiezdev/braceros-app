@@ -16,6 +16,12 @@
 .anios-blancos__x { border:1px solid var(--filete); background:var(--panel);
   color:var(--suave); padding:0 6px; cursor:pointer; }
 .anios-blancos__x:hover { color:var(--tinta); }
+.opc-impresion { display:flex; flex-direction:column; gap:6px;
+  min-width:150px; padding-top:6px; }
+.opc-impresion__item { display:flex !important; flex-direction:row !important;
+  align-items:center; gap:8px !important; font-size:var(--fs-sm);
+  color:var(--tinta); cursor:pointer; }
+.opc-impresion__item input { width:auto !important; margin:0; }
 .previa { margin-top:16px; border-top:1px solid var(--filete); padding-top:16px;
   max-height:46vh; overflow:auto; background:#fff; }
 
@@ -64,6 +70,8 @@
 /* nombres más grandes; las casillas de estado ocupan poco */
 .impresion td:nth-child(2) { font-size: 13px; }
 .impresion th:nth-child(n+3), .impresion td:nth-child(n+3) { width:23mm; }
+.impresion th.imp-txt, .impresion td.imp-txt { width:auto; text-align:left; }
+.impresion td.imp-txt { white-space:pre-wrap; word-break:break-word; }
 /* color de la casilla según el estado: verde = sí/vino, rojo = no/falta,
    ámbar = falta justificada */
 .impresion td.imp--si { background:#DFF0D8; }
