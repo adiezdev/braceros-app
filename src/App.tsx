@@ -22,6 +22,7 @@ import { useTema } from "./hooks/useTema";
 import type { CfgImpresion, Pestana } from "./types";
 import { ArchivadosView } from "./views/ArchivadosView";
 import { ConfigView } from "./views/ConfigView";
+import { EstadisticasView } from "./views/EstadisticasView";
 import { ListaView } from "./views/ListaView";
 
 const TEXTO_CONEXION: Record<Conexion, string> = {
@@ -173,7 +174,7 @@ function AppAutenticado({ onLogout }: { onLogout: () => void }) {
 
           {!ocultar && <Resumen est={est} />}
 
-          {pestana !== "imprimir" && pestana !== "archivados" && pestana !== "lista" && pestana !== "configuracion" && (
+          {pestana !== "imprimir" && pestana !== "archivados" && pestana !== "lista" && pestana !== "configuracion" && pestana !== "estadisticas" && (
         <div className="barra">
           <label className="buscador">
             <Search size={15} />
@@ -217,7 +218,7 @@ function AppAutenticado({ onLogout }: { onLogout: () => void }) {
       )}
 
       <main className="lienzo">
-        {vacia && pestana !== "imprimir" && pestana !== "lista" && pestana !== "configuracion" ? (
+        {vacia && pestana !== "imprimir" && pestana !== "lista" && pestana !== "configuracion" && pestana !== "estadisticas" ? (
           <div className="vacio">
             <p>No queda nadie en la lista.</p>
             <p className="vacio__ayuda">
@@ -259,6 +260,7 @@ function AppAutenticado({ onLogout }: { onLogout: () => void }) {
                 onAlternarPantalla={alternar}
               />
             )}
+            {pestana === "estadisticas" && est && <EstadisticasView est={est} />}
           </>
         )}
       </main>
@@ -273,7 +275,7 @@ function AppAutenticado({ onLogout }: { onLogout: () => void }) {
         </div>
       </div>
 
-      {pestana !== "imprimir" && pestana !== "lista" && pestana !== "configuracion" && (
+      {pestana !== "imprimir" && pestana !== "lista" && pestana !== "configuracion" && pestana !== "estadisticas" && (
         <FabFoto onClick={() => setVolcadoFoto(true)} />
       )}
     </div>

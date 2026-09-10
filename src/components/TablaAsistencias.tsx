@@ -72,6 +72,7 @@ const FilaAsistencia = React.memo(FilaAsistenciaInner, (prev, next) =>
   prev.hermano === next.hermano &&
   prev.numero === next.numero &&
   prev.indice === next.indice &&
+  prev.aniosAsis === next.aniosAsis &&
   prev.cupo === next.cupo &&
   prev.mostrarRaya === next.mostrarRaya
 );

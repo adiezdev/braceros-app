@@ -98,7 +98,7 @@ export interface CfgImpresion {
   observaciones: boolean;
 }
 
-export type Pestana = "hermanos" | "cuotas" | "asistencias" | "archivados" | "imprimir" | "lista" | "configuracion";
+export type Pestana = "hermanos" | "cuotas" | "asistencias" | "archivados" | "imprimir" | "lista" | "configuracion" | "estadisticas";
 
 export interface Aviso {
   tono: "ok" | "error" | "info";

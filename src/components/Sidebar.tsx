@@ -1,6 +1,7 @@
 import {
   Archive,
   CalendarCheck,
+  ChartColumn,
   CircleDollarSign,
   ClipboardList,
   Printer,
@@ -25,6 +26,7 @@ const SECCIONES: [Pestana, string, LucideIcon][] = [
   ["archivados", "Archivados", Archive],
   ["imprimir", "Listado en papel", Printer],
   ["lista", "Lista", ClipboardList],
+  ["estadisticas", "Estadísticas", ChartColumn],
   ["configuracion", "Configuración", Settings],
 ];
 

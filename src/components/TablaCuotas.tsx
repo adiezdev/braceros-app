@@ -70,6 +70,8 @@ const FilaCuota = React.memo(FilaCuotaInner, (prev, next) =>
   prev.hermano === next.hermano &&
   prev.numero === next.numero &&
   prev.indice === next.indice &&
+  prev.aniosCuotas === next.aniosCuotas &&
+  prev.cuota === next.cuota &&
   prev.cupo === next.cupo &&
   prev.mostrarRaya === next.mostrarRaya
 );

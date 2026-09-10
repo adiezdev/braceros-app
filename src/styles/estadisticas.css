@@ -1,0 +1,90 @@
+/* ------------------------------------------------------------------ *
+ * Estadísticas: contenedor del gráfico (adaptación mono-charts sin
+ * Tailwind) + resumen + tabla. Usa los tokens del sitio.
+ * ------------------------------------------------------------------ */
+
+.estadisticas { width: 100%; }
+main .estadisticas { max-width: none; }
+
+/* --- tarjeta del gráfico --- */
+.graf {
+  background: var(--panel);
+  border: 1px solid var(--filete);
+  border-radius: var(--radius-lg);
+  padding: 14px 14px 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.graf__leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 8px 4px 2px;
+  font-size: var(--fs-xs);
+  color: var(--suave);
+}
+
+.graf__punto {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-full);
+  margin-right: 6px;
+}
+
+.graf__punto--exc { background: var(--burdeos); }
+.graf__punto--sm { background: var(--laton); }
+
+.graf__mucho { display: inline-flex; align-items: center; }
+
+/* --- tooltip monocromo --- */
+.graf__tooltip {
+  background: #FFFFFF;
+  border: 1px solid var(--filete);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 8px 11px;
+  font-size: var(--fs-sm);
+  color: var(--gris-900);
+  pointer-events: none;
+}
+
+.graf__tooltip-titulo {
+  display: block;
+  font-weight: 600;
+  border-bottom: 1px solid var(--borde-suave);
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.graf__tooltip-filas { display: flex; flex-direction: column; gap: 4px; }
+.graf__tooltip-fila { display: flex; align-items: center; gap: 7px; }
+
+/* --- resumen --- */
+.graf__resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.graf__chip {
+  background: var(--panel);
+  border: 1px solid var(--filete);
+  border-radius: var(--radius-md);
+  padding: 7px 11px;
+  font-size: var(--fs-sm);
+  color: var(--suave);
+  box-shadow: var(--shadow-sm);
+}
+
+.graf__chip b { color: var(--tinta); }
+.graf__chip--exc b { color: var(--burdeos); }
+.graf__chip--sm b { color: var(--laton); }
+
+/* --- tabla --- */
+.rejilla--stats th { background: var(--hover-fila); }
+.rejilla--stats td,
+.rejilla--stats th { padding: 6px 10px; }
+.th-exc b { color: var(--burdeos); }
+.th-sm b { color: var(--laton); }

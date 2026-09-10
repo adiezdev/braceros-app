@@ -6,6 +6,7 @@
 @import "./impresion.css";
 @import "./volcado.css";
 @import "./archivados.css";
+@import "./estadisticas.css";
 
 /* ------------------------------------------------------------------ *
  * Hoja maestra. Las fuentes se cargan desde index.html.
