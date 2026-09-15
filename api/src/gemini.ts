@@ -21,24 +21,49 @@ const URL = (key: string, modelo: string) =>
 
 export interface FilaTranscrita {
   n: number;
-  marca: Marca;
-  /** true si la fila del hermano está tachada (cruce, círculo en el Nº o
-      subrayado fuerte): señal de que hay que quitarlo de la lista. */
+  /** Nombre tal y como aparece escrito en la hoja (para alinear contra la lista actual). */
+  nombre?: string;
+  /** Marcas leídas, en el MISMO ORDEN que la lista de columnas pedida. */
+  marcas: Marca[];
+  /** true solo si el NOMBRE COMPLETO está atravesado por una línea: el hermano
+      se da de baja. Una marquita al lado del nombre NO es un tachado. */
   quitar?: boolean;
 }
 
 export type TipoFoto = "asistencia" | "cuotas";
 
 /**
- * Transcribe una foto. `imagenBase64` es el JPEG (o PNG) en base64 de una
- * sola página. `columna` es el índice (0-based) de la columna de marcas
- * (solo se usa en modo asistencia). `tipo` indica qué leer: asistencia
- * (V/F/FJ) o cuotas (S/N).
+ * Adivina el MIME de una foto en base64 sin depender del cliente: se fija en
+ * los primeros bytes (los JPEG empiezan por ´ÿØÿ`, los HEIC por "ftyp"+"heic").
+ */
+function mimeDe(b64: string): string {
+  try {
+    const bytes = new Uint8Array(Buffer.from(b64, "base64").subarray(0, 12));
+    if (bytes[0] === 0xff && bytes[1] === 0xd8) return "image/jpeg";
+    if (bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+      const marca = String.fromCharCode(bytes[8] ?? 0, bytes[9] ?? 0);
+      if (marca === "he" || marca === "mi") return "image/heic";
+    }
+  } catch {
+    /* MIME desconocido: Gemini lo ve como image/jpeg y avisará si no puede. */
+  }
+  return "image/jpeg";
+}
+
+/**
+ * Transcribe una foto. `imagenBase64` es el JPEG (o HEIC/PNG) en base64 de
+ * una sola página. `columnas` son los índices (0-based) de las columnas de
+ * marcas a leer, todas en la MISA llamada a Gemini (una sola foto, un solo
+ * prompt: gastamos una sola vez el coste de la imagen). `mime` (image/jpeg,
+ * image/heic, …) se lo decimos a Gemini; si no viene, se intenta adivinar
+ * porque el código que subió la foto no lo sabía (cliente viejo). `tipo`
+ * indica qué leer: asistencia (V/F/FJ) o cuotas (S/N).
  */
 export async function transcribir(
   imagenBase64: string,
-  columna: number,
-  tipo: TipoFoto = "asistencia"
+  columnas: number[],
+  tipo: TipoFoto = "asistencia",
+  mime?: string
 ): Promise<FilaTranscrita[]> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) {
@@ -51,8 +76,15 @@ export async function transcribir(
   if (typeof imagenBase64 !== "string" || imagenBase64.length < 100) {
     throw new ErrorPeticion("la foto no ha llegado entera");
   }
+  if (
+    !Array.isArray(columnas) ||
+    !columnas.length ||
+    !columnas.every((c) => Number.isInteger(c) && c >= 0 && c <= 30)
+  ) {
+    throw new ErrorPeticion("columnas de marcas inválidas");
+  }
 
-  const prompt = tipo === "cuotas" ? promptCuotas : promptAsistencia(columna);
+  const prompt = tipo === "cuotas" ? promptCuotas(columnas) : promptAsistencia(columnas);
 
   const body = {
     contents: [
@@ -61,7 +93,7 @@ export async function transcribir(
           { text: prompt },
           {
             inline_data: {
-              mime_type: "image/jpeg",
+              mime_type: mime ?? mimeDe(imagenBase64),
               data: imagenBase64,
             },
           },
@@ -114,44 +146,53 @@ export async function transcribir(
     tipo === "cuotas"
       ? { P: "S", X: "S", "": "N" }
       : { X: "F" };
-  const filas = parsear(texto, marcasValidas, alias);
+  const filas = parsear(texto, marcasValidas, alias, columnas.length);
   if (!filas.length) {
     throw new ErrorPeticion("Gemini no ha sabido leer la tabla de la foto. Repite la foto.", 422);
   }
   return filas;
 }
 
-/** Prompt para asistencia (V/F/FJ). */
-function promptAsistencia(columna: number): string {
-  if (!Number.isInteger(columna) || columna < 0 || columna > 30) {
-    throw new ErrorPeticion("columna de marcas inválida");
-  }
+/** Describe las columnas pedidas para el prompt: "1, 3 y 4". */
+function listaColumnas(columnas: number[]): string {
+  if (columnas.length === 1) return `la ${columnas[0]}`;
+  return `las ${columnas.slice(0, -1).join(", ")} y ${columnas[columnas.length - 1]}`;
+}
+
+/** Prompt para asistencia (V/F/FJ): lee todas las columnas de marcas a la vez. */
+function promptAsistencia(columnas: number[]): string {
   return (
     "Eres un lector de tablas impresas de asistencia.\n" +
-    `En la foto hay una tabla. La columna 0 (la primera, la que va numerada) es el Nº (un entero). La columna ${columna} (contando desde 0) es una marca escrita a mano. Cada Nº tiene una fila con su marca.\n` +
-    "Las marcas posibles son exactamente: V (asistió), F (falta), FJ (falta justificada) o vacío (si la celda está en blanco). Una cruz escrita a mano (una X) también es una falta: trátala como F.\n" +
-    "Además, la fila de un hermano puede estar tachada (un trazo que cruza el nombre o la línea, un círculo alrededor del Nº, o un subrayado fuerte). Eso significa que el hermano se da de baja y hay que quitarlo de la lista: en ese caso pon \"quitar\":true para esa fila, con \"marca\":\"\" aunque tenga algo escrito.\n" +
-    "Devuelve ÚNICAMENTE un JSON válido, sin texto alrededor ni marcas de código, con esta forma exacta:\n" +
-    '[{"n":1,"marca":"V"},{"n":3,"marca":"","quitar":true}]' +
-    "\nSolo puede haber una entrada por Nº. Si una celda está vacía, usa \"\". Si no estás seguro de una marca, usa \"\" (vacío) para esa fila. El campo \"quitar\" es opcional: solo ponlo a true cuando la fila esté claramente tachada.\n"
+    `En la foto hay una tabla. La columna 0 (la primera, la que va numerada) es el Nº (un entero). Las columnas de marcas que debes leer son ${listaColumnas(columnas)} (contando desde 0). Cada Nº tiene una fila, y en esa fila hay una celda en cada una de esas columnas.\n` +
+    "Las marcas posibles son exactamente: V (asistió), F (falta), FJ (falta justificada) o cadena vacía (si la celda está en blanco). Una cruz escrita a mano (una X) también es una falta: trátala como F.\n" +
+    "Un hermano solo se da de baja de la lista si su NOMBRE COMPLETO está atravesado por una línea (el texto del nombre cruzado de lado a lado). En ese caso pon \"quitar\":true y todas las celdas de \"marca\" vacías. IMPORTANTE: una cruz pequeña o marquita AL LADO del nombre, un palito, un subrayado, un círculo en el Nº, o cualquier anotación en las celdas NO es un tachado: son marcas de falta y el hermano SIGUE en la lista; en esos casos no pongas \"quitar\".\n" +
+    "En cada entrada incluye también \"nombre\" con el texto completo del nombre del hermano tal y como está escrito en su fila.\n" +
+    `Devuelve ÚNICAMENTE un JSON válido, sin texto alrededor ni marcas de código. Cada entrada lleva "n", "nombre" y "marca": un array con las ${columnas.length} marcas en el MISMO ORDEN que las columnas pedidas. Ejemplo:\n` +
+    `[{"n":1,"nombre":"Pérez García, Juan","marca":["V","F"]},{"n":3,"nombre":"Motos, Carlos","marca":["",""],"quitar":true}]` +
+    "\nReglas: una entrada por fila (un Nº una vez); celda vacía → \"\"; si no estás seguro de una celda usa \"\"; el array \"marca\" debe tener exactamente tantas celdas como columnas pedidas; \"quitar\" es opcional: solo true si la fila está claramente tachada.\n"
   );
 }
 
-/** Prompt para cuotas (S/N). */
-const promptCuotas =
-  "Eres un lector de listas de cuotas impresas.\n" +
-  "En la foto hay una lista numerada. La columna 0 (la primera) es el Nº (un entero). La columna 1 (la siguiente) es una marca de estado de la cuota escrita a mano.\n" +
-  "Las marcas posibles son exactamente: S (pagada), N (pendiente) o vacío (si la celda está en blanco significa que NO ha pagado: trátala como N). Una P o una X escrita a mano también significa pagada: trátala como S.\n" +
-  "Además, la fila de un hermano puede estar tachada (un trazo que cruza el nombre o la línea, un círculo alrededor del Nº, o un subrayado fuerte). Eso significa que el hermano se da de baja y hay que quitarlo de la lista: en ese caso pon \"quitar\":true para esa fila, con \"marca\":\"\" aunque tenga algo escrito.\n" +
-  "Devuelve ÚNICAMENTE un JSON válido, sin texto alrededor ni marcas de código, con esta forma exacta:\n" +
-  '[{"n":1,"marca":"S"},{"n":3,"marca":"","quitar":true}]' +
-  "\nSolo puede haber una entrada por Nº. Si una celda está vacía, usa \"\". Si no estás seguro de una marca, usa \"\" (vacío) para esa fila. El campo \"quitar\" es opcional: solo ponlo a true cuando la fila esté claramente tachada.\n";
+/** Prompt para cuotas (S/N): una columna por año de cuota, todas a la vez. */
+function promptCuotas(columnas: number[]): string {
+  return (
+    "Eres un lector de listas de cuotas impresas.\n" +
+    `En la foto hay una lista numerada. La columna 0 (la primera) es el Nº (un entero). Las columnas que debes leer son ${listaColumnas(columnas)} (contando desde 0), una por año de cuota.\n` +
+    "Las marcas posibles son exactamente: S (pagada), N (pendiente) o cadena vacía (celda en blanco = NO ha pagado → trátala como N). Una P o una X escrita a mano también significa pagada: trátala como S.\n" +
+    "Un hermano solo se da de baja de la lista si su NOMBRE COMPLETO está atravesado por una línea (el texto del nombre cruzado de lado a lado). En ese caso pon \"quitar\":true y todas las celdas de \"marca\" vacías. IMPORTANTE: una cruz pequeña o marquita AL LADO del nombre, un palito, un subrayado, un círculo en el Nº, o cualquier anotación en las celdas NO es un tachado: son marcas y el hermano SIGUE en la lista; en esos casos no pongas \"quitar\".\n" +
+    "En cada entrada incluye también \"nombre\" con el texto completo del nombre del hermano tal y como está escrito en su fila.\n" +
+    `Devuelve ÚNICAMENTE un JSON válido, sin texto alrededor ni marcas de código. Cada entrada lleva "n", "nombre" y "marca": un array con las ${columnas.length} marcas en el MISMO ORDEN que las columnas pedidas. Ejemplo:\n` +
+    `[{"n":1,"nombre":"Pérez García, Juan","marca":["S","N"]},{"n":3,"nombre":"Motos, Carlos","marca":["",""],"quitar":true}]` +
+    "\nReglas: una entrada por fila (un Nº una vez); el array \"marca\" debe tener exactamente tantas celdas como columnas pedidas; \"quitar\" es opcional: solo true si la fila está claramente tachada.\n"
+  );
+}
 
 /** Convierte el JSON (con o sin marcas ```json``` alrededor) en filas válidas. */
 function parsear(
   texto: string,
   marcasValidas: readonly string[],
   alias: Record<string, string> = {},
+  nColumnas: number,
 ): FilaTranscrita[] {
   let t = texto.trim();
   // Gemini a veces envuelve la salida en una marca de bloque JSON o Markdown.
@@ -174,20 +215,44 @@ function parsear(
     const o = item as Record<string, unknown>;
     const n = Number(o.n);
     if (!Number.isInteger(n) || n <= 0) continue;
-    const m = String(o.marca ?? "").trim().toUpperCase();
-    // Lo que no sea marca válida se trata como vacío (a revisar en la UI),
-    // salvo lo que el alias mapee: en asistencias X = falta (F); en cuotas
-    // P o X = pagada (S).
-    let marca = marcasValidas.includes(m) ? (m as Marca | Cuota) : "";
-    if (!marca) {
-      const canon = alias[m];
-      if (canon && marcasValidas.includes(canon)) marca = canon as Marca | Cuota;
+    const nombre = typeof o.nombre === "string" ? o.nombre.trim() : "";
+    // El array de marcas debe ir en paralelo a las columnas pedidas. Si el
+    // modelo envia menos, completamos con vacío; si más, lo recortamos.
+    const crudas = Array.isArray(o.marca) ? o.marca : [];
+    const marcas: Marca[] = [];
+    const vacias: boolean[] = [];
+    for (let k = 0; k < nColumnas; k++) {
+      const celda = typeof crudas[k] === "string" ? crudas[k].trim().toUpperCase() : "";
+      vacias.push(celda === "");
+      // Lo que no sea marca válida se trata como vacío (a revisar en la UI),
+      // salvo lo que el alias mapee: en asistencias X = falta (F); en cuotas
+      // P o X = pagada (S) y vacío = no pagada (N).
+      let marca: Marca | Cuota = marcasValidas.includes(celda)
+        ? (celda as Marca | Cuota)
+        : "";
+      if (!marca) {
+        const canon = alias[celda];
+        if (canon && marcasValidas.includes(canon)) marca = canon as Marca | Cuota;
+      }
+      marcas.push(marca as Marca);
     }
-    const quitar = o.quitar === true ? true : undefined;
-    filas.push({ n, marca: marca as Marca, ...(quitar ? { quitar } : {}) });
+    // Solo se da de baja a quien tiene TODAS las celdas en blanco en la hoja:
+    // un tachado del nombre va sin marcas. Si el modelo marca "quitar" y a la
+    // vez hay celdas escritas, es una marquita de falta, no una baja.
+    const quitar =
+      o.quitar === true && vacias.length > 0 && vacias.every((v) => v) ? true : undefined;
+    filas.push({
+      n,
+      ...(nombre ? { nombre } : {}),
+      marcas,
+      ...(quitar ? { quitar } : {}),
+    });
   }
-  // Quita duplicados de Nº quedándonos con la última aparición.
-  const porN = new Map<number, FilaTranscrita>();
-  for (const f of filas) porN.set(f.n, f);
-  return [...porN.values()];
+  // Quita duplicados quedándonos con la última aparición: por nombre si lo hay,
+  // si no por Nº.
+  const porId = new Map<string | number, FilaTranscrita>();
+  for (const f of filas) {
+    porId.set(f.nombre || f.n, f);
+  }
+  return [...porId.values()];
 }

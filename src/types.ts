@@ -53,7 +53,8 @@ export interface FilaLeida {
   /** Puesto (1..N) en la lista, el que sale impreso. */
   n: number;
   nombre: string;
-  marca: Marca | Cuota;
+  /** Marcas leídas, en el MISMO ORDEN que las columnas pedidas en el volcado. */
+  marcas: (Marca | Cuota)[];
   /** 0..1; por debajo de ~0.6 conviene que el usuario la repare. */
   confianza: number;
   /** true si el hermano está tachado en la foto: hay que quitarlo de la lista. */

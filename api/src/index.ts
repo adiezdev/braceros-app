@@ -61,9 +61,15 @@ app.post<{ Body: { ops?: Operacion[] } }>("/api/cambios", { preValidation: [asyn
  * manda a Gemini para leer las marcas de la tabla. La API key de Gemini vive
  * aquí (variable de entorno), nunca en el navegador. La imagen sale a Google.
  */
-app.post<{ Body: { imagenBase64?: string; columna?: number; tipo?: TipoFoto } }>("/api/foto", { preValidation: [async (req) => { await req.jwtVerify(); }] }, async (req) => {
+app.post<{ Body: { imagenBase64?: string; columna?: number; columnas?: number[]; tipo?: TipoFoto; mime?: string } }>("/api/foto", { preValidation: [async (req) => { await req.jwtVerify(); }] }, async (req) => {
   const tipo: TipoFoto = req.body?.tipo === "cuotas" ? "cuotas" : "asistencia";
-  const filas = await transcribir(req.body?.imagenBase64 ?? "", req.body?.columna ?? 0, tipo);
+  const columnas =
+    Array.isArray(req.body?.columnas) && req.body.columnas.length
+      ? req.body.columnas
+      : req.body?.columna != null
+        ? [req.body.columna]
+        : [1];
+  const filas = await transcribir(req.body?.imagenBase64 ?? "", columnas, tipo, req.body?.mime);
   return { filas };
 });
 

@@ -22,12 +22,33 @@
   margin-bottom:12px; }
 .volcado__controles label { display:flex; flex-direction:column; gap:3px;
   font-size:var(--fs-xs); color:var(--suave); }
+.volcado__controles--col { flex-direction:column; align-items:stretch; }
+.volcado__columna { display:flex; gap:8px; align-items:center; }
+.volcado__columna .input, .volcado__columna .select { width:auto; flex:1; min-width:70px; }
 .volcado__error { color:var(--rojo); font-weight:600; margin:0 0 10px; }
 .volcado__errores { margin:0 0 10px; padding-left:18px; color:var(--rojo);
   font-size:var(--fs-sm); }
 .volcado__errores li { margin-bottom:2px; }
 .volcado__resumen { font-size:var(--fs-xs); color:var(--suave); margin:0 0 8px; }
 .volcado__duda { color:var(--laton); font-weight:600; }
+.volcado__omitidos { margin:0 0 12px; }
+.volcado__omitido { display:flex; align-items:center; gap:8px; margin-bottom:6px;
+  padding:6px 8px; border:1px solid var(--filete); border-radius:var(--radius-sm);
+  background:var(--panel); }
+.volcado__omitido > span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; font-size:var(--fs-sm); }
+.volcado__busca { flex:1.6; min-width:0; position:relative; }
+.volcado__busca .input { width:100%; }
+.volcado__buscas { position:absolute; z-index:3; top:calc(100% + 4px); left:0; right:0;
+  list-style:none; margin:0; padding:4px; max-height:180px; overflow:auto;
+  background:var(--panel); border:1px solid var(--filete); border-radius:var(--radius-sm);
+  box-shadow:var(--shadow-lg); }
+.volcado__buscas li button { width:100%; text-align:left; border:none; background:none;
+  font:inherit; font-size:var(--fs-sm); color:var(--tinta); padding:5px 8px;
+  border-radius:var(--radius-sm); cursor:pointer; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; }
+.volcado__buscas li button:hover { background:var(--burdeos); color:#fff; }
+.volcado__buscas-vacio { font-size:var(--fs-xs); color:var(--suave); padding:4px 8px; }
 .volcado__baja-info { color:var(--rojo); font-weight:600; }
 .volcado__fila-baja { background:var(--celda-rojo); }
 .volcado__fila-baja td { color:var(--suave); }

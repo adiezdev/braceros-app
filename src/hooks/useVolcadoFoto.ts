@@ -3,8 +3,15 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { PROCESIONES } from "../constants";
 import { confirmar } from "../lib/dialogo";
-import { leerFotos, type Alineable } from "../lib/foto";
-import { archivarHermano, numerosPorBloque, siguienteCuota, siguienteMarca } from "../lib/modelo";
+import { alinear, normalizarNombre, type Alineable } from "../lib/alinear";
+import { leerFotos, type FilaBruta } from "../lib/foto";
+import {
+  archivarHermano,
+  crearHermano,
+  numerosPorBloque,
+  siguienteCuota,
+  siguienteMarca,
+} from "../lib/modelo";
 import type {
   CfgImpresion,
   ClaveProcesion,
@@ -16,23 +23,40 @@ import type {
 
 export type ModoFoto = "asistencia" | "cuotas";
 
+/** Una columna de marcas elegida para leer: a qué año/procesión corresponde y
+    dónde está en el papel (0 = columna del Nº). */
+export interface ColumnaSeleccion {
+  anio: number;
+  /** Solo asistencia: exaltación o San Martín. */
+  procesion?: ClaveProcesion;
+  /** Índice de la columna de marcas en la hoja (0-based). */
+  indice: number;
+}
+
 export interface VolcadoFotoHook {
   modo: ModoFoto;
   esCuotas: boolean;
-  procesion: ClaveProcesion;
-  anio: number;
-  anios: number[];
+  columnas: ColumnaSeleccion[];
   leyendo: boolean;
   errores: string[];
+  /** Nombres de la hoja que no están en la lista actual, sin resolver aún. */
+  omitidos: string[];
+  /** Lista actual (Nº y nombre de cada hermano), para emparejar omitidos. */
+  lista: Alineable[];
   acumulado: FilaLeida[];
   conMarca: number;
   conBaja: number;
   seleccionarModo: (m: ModoFoto) => void;
-  seleccionarProcesion: (p: ClaveProcesion) => void;
-  seleccionarAnio: (a: number) => void;
+  anadirColumna: () => void;
+  quitarColumna: (i: number) => void;
+  cambiarColumna: (i: number, patch: Partial<ColumnaSeleccion>) => void;
   elegirFotos: (files: FileList | null | undefined) => void;
-  corregir: (id: string) => void;
+  corregir: (id: string, columna: number) => void;
   alternarBaja: (id: string) => void;
+  /** Da de alta un nombre de la hoja en la lista (en Suplentes por defecto). */
+  anadir: (nombre: string) => void;
+  /** Une un nombre de la hoja a un hermano existente (errata/apellido). */
+  emparejar: (nombre: string, idHermano: string) => void;
   guardar: () => void;
   descartar: () => void;
 }
@@ -49,13 +73,29 @@ function columnasMarca(cfg: CfgImpresion): { anio: number; procesion: ClaveProce
   ];
 }
 
+/** Las columnas que imprime la hoja actual: arranque por defecto, editables. */
+function columnasDeLaHoja(cfg: CfgImpresion, m: ModoFoto): ColumnaSeleccion[] {
+  if (m === "cuotas") {
+    return [
+      { anio: cfg.anioAnterior, indice: 1 },
+      ...cfg.aniosNuevos.map((a, i) => ({ anio: a, indice: 2 + i })),
+    ];
+  }
+  return columnasMarca(cfg).map((c, i) => ({
+    anio: c.anio,
+    procesion: c.procesion,
+    indice: i + 1,
+  }));
+}
+
 export function nombreProcesion(c: ClaveProcesion): string {
   return PROCESIONES.find((p) => p.clave === c)?.corto ?? c;
 }
 
 /**
- * Estado del modal de volcado por foto: qué modo/sección/año se lee, las filas
- * acumuladas de las páginas subidas y cómo se vuelcan a la lista (setEst).
+ * Estado del modal de volcado por foto: qué columnas de marcas se leen (pueden
+ * ser varias a la vez, sin límite de año), las filas acumuladas de las páginas
+ * subidas y cómo se vuelcan a la lista (setEst).
  */
 export function useVolcadoFoto(
   est: Estado,
@@ -63,44 +103,56 @@ export function useVolcadoFoto(
   setEst: Dispatch<SetStateAction<Estado>>,
   onCerrar: () => void,
 ): VolcadoFotoHook {
-  const columnas = useMemo(() => columnasMarca(cfg), [cfg]);
   const [modo, setModo] = useState<ModoFoto>("asistencia");
-  const [procesion, setProcesion] = useState<ClaveProcesion>("exc");
-  const [anio, setAnio] = useState(columnas[0]?.anio ?? 0);
+  const [columnas, setColumnas] = useState<ColumnaSeleccion[]>(() =>
+    columnasDeLaHoja(cfg, "asistencia"),
+  );
   const [leyendo, setLeyendo] = useState(false);
   const [errores, setErrores] = useState<string[]>([]);
-  const [acumulado, setAcumulado] = useState<FilaLeida[]>([]);
+  /** Filas crudas leídas de las fotos (todas las páginas). */
+  const [brutas, setBrutas] = useState<FilaBruta[]>([]);
+  /** Correcciones a mano: nombre de la hoja → id del hermano al que pertenece. */
+  const [parejas, setParejas] = useState<Record<string, string>>({});
+  /** Marcas/tachado ajustadas a mano por hermano (persisten al realinear). */
+  const [ajustes, setAjustes] = useState<Record<string, { marcas: (Marca | Cuota)[]; quitar?: boolean }>>({});
 
   const esCuotas = modo === "cuotas";
-  const anios = esCuotas ? est.aniosCuotas : [...new Set(columnas.map((c) => c.anio))];
-
-  const indiceColumna = columnas.findIndex(
-    (c) => `${c.anio}_${c.procesion}` === `${anio}_${procesion}`
-  );
 
   const lista = useMemo<Alineable[]>(() => {
     const numeros = numerosPorBloque(est.hermanos);
     return est.hermanos.map((h, i) => ({ id: h.id, n: numeros[i]!, nombre: h.nombre }));
   }, [est.hermanos]);
 
+  // Alineación derivada: los nombres de la hoja que el usuario ha emparejado a
+  // un hermano existente (errata/apellido mal) se casan por id, así sus marcas
+  // caen en la persona correcta.
+  const alineado = useMemo(() => {
+    const parejasNormalizadas = Object.fromEntries(
+      Object.entries(parejas).map(([n, id]) => [normalizarNombre(n), id]),
+    );
+    return alinear(brutas, lista, parejasNormalizadas);
+  }, [brutas, lista, parejas]);
+
+  // La tabla de revisión, con las correcciones a mano por encima.
+  const acumulado = useMemo<FilaLeida[]>(
+    () => alineado.filas.map((f) => (ajustes[f.id] ? { ...f, ...ajustes[f.id] } : f)),
+    [alineado, ajustes],
+  );
+
+  const omitidos = useMemo<string[]>(() => [...new Set(alineado.omitidos)], [alineado.omitidos]);
+
   const elegirFotos = async (files: FileList | null | undefined) => {
     const archivos = Array.from(files ?? []);
-    if (!archivos.length) return;
-    if (!esCuotas && indiceColumna < 0) return;
+    if (!archivos.length || !columnas.length) return;
     setLeyendo(true);
     setErrores([]);
     try {
-      const { filas, errores } = await leerFotos(archivos, lista, {
-        indiceColumna,
+      const { crudas, errores } = await leerFotos(archivos, {
+        columnas: columnas.map((c) => c.indice),
         tipo: modo,
       });
       setErrores(errores);
-      // Se acumulan páginas; si un mismo hermano sale en dos páginas, la última vale.
-      setAcumulado((prev) => {
-        const porId = new Map(prev.map((f) => [f.id, f]));
-        for (const f of filas) porId.set(f.id, f);
-        return [...porId.values()];
-      });
+      setBrutas((prev) => [...prev, ...crudas]);
     } catch (e) {
       setErrores([e instanceof Error ? e.message : "No he podido leer las fotos."]);
     } finally {
@@ -108,22 +160,46 @@ export function useVolcadoFoto(
     }
   };
 
-  const corregir = (id: string) => {
-    setAcumulado((prev) =>
-      prev.map((f) => {
-        if (f.id !== id) return f;
-        const marca = esCuotas
-          ? siguienteCuota(f.marca as Cuota)
-          : siguienteMarca(f.marca as Marca);
-        return { ...f, marca: marca as Marca | Cuota };
-      })
-    );
+  const corregir = (id: string, columna: number) => {
+    setAjustes((prev) => {
+      const celdaActual =
+        prev[id]?.marcas[columna] ??
+        (acumulado.find((f) => f.id === id)?.marcas[columna] as Marca | Cuota | undefined) ??
+        "";
+      const marcas = [...(prev[id]?.marcas ?? acumulado.find((f) => f.id === id)?.marcas ?? [])];
+      while (marcas.length <= columna) marcas.push("");
+      marcas[columna] = (esCuotas ? siguienteCuota(celdaActual as Cuota) : siguienteMarca(celdaActual as Marca)) as
+        | Marca
+        | Cuota;
+      return { ...prev, [id]: { marcas, quitar: prev[id]?.quitar } };
+    });
   };
 
   const alternarBaja = (id: string) => {
-    setAcumulado((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, quitar: f.quitar ? undefined : true } : f))
-    );
+    setAjustes((prev) => {
+      const base = acumulado.find((f) => f.id === id);
+      const quitar = prev[id] ? !prev[id].quitar : !(base?.quitar ?? false);
+      return {
+        ...prev,
+        [id]: { marcas: prev[id]?.marcas ?? base?.marcas ?? [], quitar },
+      };
+    });
+  };
+
+  const anadir = (nombre: string) => {
+    const normal = normalizarNombre(nombre);
+    if (!normal) return;
+    if (lista.some((l) => normalizarNombre(l.nombre) === normal)) return;
+    setEst((p) => ({ ...p, hermanos: [...p.hermanos, crearHermano({ nombre })] }));
+  };
+
+  const emparejar = (nombre: string, idHermano: string) => {
+    setParejas((prev) => {
+      const copia = { ...prev };
+      if (idHermano) copia[nombre] = idHermano;
+      else delete copia[nombre];
+      return copia;
+    });
   };
 
   const guardar = async () => {
@@ -143,58 +219,92 @@ export function useVolcadoFoto(
       p.hermanos.forEach((h, i) => {
         if (idsBaja.has(h.id)) estado = archivarHermano(estado, h.id, numeros[i]);
       });
-      // Aplicar marcas/cuotas a los que no fueron tachados.
+      // Aplicar marcas/cuotas de TODAS las columnas elegidas a los que no
+      // fueron tachados, y apuntar los años aunque no estuvieran en la lista
+      // (p. ej. lecturas de años anteriores).
+      const aniosDe = columnas.map((c) => c.anio);
+      const registraAnios = (anios: number[]) => {
+        const nuevos = aniosDe.filter((a) => !anios.includes(a));
+        return nuevos.length ? [...anios, ...nuevos].sort((a, b) => a - b) : anios;
+      };
       return {
         ...estado,
+        aniosCuotas: esCuotas ? registraAnios(estado.aniosCuotas) : estado.aniosCuotas,
+        aniosAsis: esCuotas ? estado.aniosAsis : registraAnios(estado.aniosAsis),
         hermanos: estado.hermanos.map((h) => {
           const leida = acumulado.find((f) => f.id === h.id);
           if (!leida || leida.quitar) return h;
-          if (esCuotas) {
-            return { ...h, cuotas: { ...h.cuotas, [anio]: leida.marca as Cuota } };
-          }
-          const prev = h.asis?.[anio] ?? { exc: "" as Marca, sm: "" as Marca };
-          return {
-            ...h,
-            asis: { ...h.asis, [anio]: { ...prev, [procesion]: leida.marca as Marca } },
-          };
+          const cuotas = { ...h.cuotas };
+          const asis = { ...h.asis };
+          columnas.forEach((c, j) => {
+            const celda = (leida.marcas[j] ?? "") as Marca | Cuota;
+            if (esCuotas) {
+              cuotas[c.anio] = celda as Cuota;
+            } else {
+              const prev = asis[c.anio] ?? { exc: "" as Marca, sm: "" as Marca };
+              asis[c.anio] = { ...prev, [c.procesion ?? "exc"]: celda as Marca };
+            }
+          });
+          return { ...h, cuotas, asis };
         }),
       };
     });
     onCerrar();
   };
 
-  const conMarca = acumulado.filter((f) => f.marca && !f.quitar).length;
+  const conMarca = acumulado.filter((f) => f.marcas.some((m) => m) && !f.quitar).length;
   const conBaja = acumulado.filter((f) => f.quitar).length;
 
   const desacumular = () => {
-    setAcumulado([]);
+    setBrutas([]);
     setErrores([]);
+    setParejas({});
+    setAjustes({});
   };
 
   const seleccionarModo = (m: ModoFoto) => {
     setModo(m);
     desacumular();
-    if (m === "cuotas") setAnio(est.aniosCuotas[0] ?? columnas[0]?.anio ?? 0);
-    else setAnio(columnas[0]?.anio ?? 0);
+    setColumnas(columnasDeLaHoja(cfg, m));
+  };
+
+  const anadirColumna = () => {
+    setColumnas((prev) => {
+      const u = prev[prev.length - 1];
+      const indice = (u?.indice ?? 0) + 1;
+      const base = u ?? (esCuotas ? { anio: cfg.anioAnterior, indice } : { anio: cfg.anioAnterior, procesion: "exc" as ClaveProcesion, indice });
+      return [...prev, { ...base, indice }];
+    });
+  };
+
+  const quitarColumna = (i: number) => {
+    setColumnas((prev) => prev.filter((_, k) => k !== i));
+  };
+
+  const cambiarColumna = (i: number, patch: Partial<ColumnaSeleccion>) => {
+    setColumnas((prev) => prev.map((c, k) => (k === i ? { ...c, ...patch } : c)));
   };
 
   return {
     modo,
     esCuotas,
-    procesion,
-    anio,
-    anios,
+    columnas,
     leyendo,
     errores,
+    omitidos,
+    lista,
     acumulado,
     conMarca,
     conBaja,
     seleccionarModo,
-    seleccionarProcesion: setProcesion,
-    seleccionarAnio: setAnio,
+    anadirColumna,
+    quitarColumna,
+    cambiarColumna,
     elegirFotos,
     corregir,
     alternarBaja,
+    anadir,
+    emparejar,
     guardar,
     descartar: desacumular,
   };
