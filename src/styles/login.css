@@ -68,7 +68,7 @@
   border-radius: var(--radius-sm);
 }
 
-/* --- campos --- */
+/* --- campos: usa .input unificado + modificador de tamaño --- */
 .login__card .campo {
   width: 100%;
   gap: 5px;
@@ -76,26 +76,8 @@
 }
 
 .login__campo {
-  font: inherit;
-  width: 100%;
-  border: 1px solid var(--filete);
-  background: var(--papel);
   padding: 10px 12px;
-  color: var(--tinta);
-  border-radius: var(--radius-sm);
-  font-family: 'Poppins', Arial, sans-serif;
   font-size: var(--fs-base);
-  transition: border-color .15s ease, box-shadow .15s ease;
-}
-
-.login__campo:hover {
-  border-color: var(--suave);
-}
-
-.login__campo:focus {
-  border-color: var(--burdeos);
-  box-shadow: 0 0 0 2px var(--hover-claro);
-  outline: none;
 }
 
 /* --- botón --- */

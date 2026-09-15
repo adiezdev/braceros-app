@@ -51,7 +51,7 @@ export function Login({ onLogin, onLogout, username, error, cargando }: Props) {
         <label className="campo">
           Usuario
           <input
-            className="login__campo"
+            className="input login__campo"
             type="text"
             value={user}
             onChange={(e) => setUser(e.target.value)}
@@ -64,7 +64,7 @@ export function Login({ onLogin, onLogout, username, error, cargando }: Props) {
         <label className="campo">
           Contraseña
           <input
-            className="login__campo"
+            className="input login__campo"
             type="password"
             value={pass}
             onChange={(e) => setPass(e.target.value)}

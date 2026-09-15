@@ -6,7 +6,6 @@ import { confirmar } from "../lib/dialogo";
 import { leerFotos, type Alineable } from "../lib/foto";
 import { archivarHermano, numerosPorBloque, siguienteCuota, siguienteMarca } from "../lib/modelo";
 import type {
-  Bloque,
   CfgImpresion,
   ClaveProcesion,
   Cuota,
@@ -16,12 +15,10 @@ import type {
 } from "../types";
 
 export type ModoFoto = "asistencia" | "cuotas";
-export type SeccionFoto = Bloque;
 
 export interface VolcadoFotoHook {
   modo: ModoFoto;
   esCuotas: boolean;
-  seccion: SeccionFoto;
   procesion: ClaveProcesion;
   anio: number;
   anios: number[];
@@ -31,7 +28,6 @@ export interface VolcadoFotoHook {
   conMarca: number;
   conBaja: number;
   seleccionarModo: (m: ModoFoto) => void;
-  seleccionarSeccion: (s: SeccionFoto) => void;
   seleccionarProcesion: (p: ClaveProcesion) => void;
   seleccionarAnio: (a: number) => void;
   elegirFotos: (files: FileList | null | undefined) => void;
@@ -69,7 +65,6 @@ export function useVolcadoFoto(
 ): VolcadoFotoHook {
   const columnas = useMemo(() => columnasMarca(cfg), [cfg]);
   const [modo, setModo] = useState<ModoFoto>("asistencia");
-  const [seccion, setSeccion] = useState<SeccionFoto>("HONORARIOS");
   const [procesion, setProcesion] = useState<ClaveProcesion>("exc");
   const [anio, setAnio] = useState(columnas[0]?.anio ?? 0);
   const [leyendo, setLeyendo] = useState(false);
@@ -85,10 +80,8 @@ export function useVolcadoFoto(
 
   const lista = useMemo<Alineable[]>(() => {
     const numeros = numerosPorBloque(est.hermanos);
-    return est.hermanos
-      .map((h, i) => ({ id: h.id, n: numeros[i], nombre: h.nombre }))
-      .filter((_, i) => est.hermanos[i].bloque === seccion);
-  }, [est.hermanos, seccion]);
+    return est.hermanos.map((h, i) => ({ id: h.id, n: numeros[i]!, nombre: h.nombre }));
+  }, [est.hermanos]);
 
   const elegirFotos = async (files: FileList | null | undefined) => {
     const archivos = Array.from(files ?? []);
@@ -185,15 +178,9 @@ export function useVolcadoFoto(
     else setAnio(columnas[0]?.anio ?? 0);
   };
 
-  const seleccionarSeccion = (s: SeccionFoto) => {
-    setSeccion(s);
-    desacumular();
-  };
-
   return {
     modo,
     esCuotas,
-    seccion,
     procesion,
     anio,
     anios,
@@ -203,7 +190,6 @@ export function useVolcadoFoto(
     conMarca,
     conBaja,
     seleccionarModo,
-    seleccionarSeccion,
     seleccionarProcesion: setProcesion,
     seleccionarAnio: setAnio,
     elegirFotos,

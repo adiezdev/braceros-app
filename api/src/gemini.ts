@@ -110,7 +110,11 @@ export async function transcribir(
     .join("") ?? "";
 
   const marcasValidas = tipo === "cuotas" ? CUOTAS : MARCAS;
-  const filas = parsear(texto, marcasValidas);
+  const alias: Record<string, string> =
+    tipo === "cuotas"
+      ? { P: "S", X: "S", "": "N" }
+      : { X: "F" };
+  const filas = parsear(texto, marcasValidas, alias);
   if (!filas.length) {
     throw new ErrorPeticion("Gemini no ha sabido leer la tabla de la foto. Repite la foto.", 422);
   }
@@ -125,7 +129,7 @@ function promptAsistencia(columna: number): string {
   return (
     "Eres un lector de tablas impresas de asistencia.\n" +
     `En la foto hay una tabla. La columna 0 (la primera, la que va numerada) es el Nº (un entero). La columna ${columna} (contando desde 0) es una marca escrita a mano. Cada Nº tiene una fila con su marca.\n` +
-    "Las marcas posibles son exactamente: V (asistió), F (falta), FJ (falta justificada) o vacío (si la celda está en blanco).\n" +
+    "Las marcas posibles son exactamente: V (asistió), F (falta), FJ (falta justificada) o vacío (si la celda está en blanco). Una cruz escrita a mano (una X) también es una falta: trátala como F.\n" +
     "Además, la fila de un hermano puede estar tachada (un trazo que cruza el nombre o la línea, un círculo alrededor del Nº, o un subrayado fuerte). Eso significa que el hermano se da de baja y hay que quitarlo de la lista: en ese caso pon \"quitar\":true para esa fila, con \"marca\":\"\" aunque tenga algo escrito.\n" +
     "Devuelve ÚNICAMENTE un JSON válido, sin texto alrededor ni marcas de código, con esta forma exacta:\n" +
     '[{"n":1,"marca":"V"},{"n":3,"marca":"","quitar":true}]' +
@@ -137,14 +141,18 @@ function promptAsistencia(columna: number): string {
 const promptCuotas =
   "Eres un lector de listas de cuotas impresas.\n" +
   "En la foto hay una lista numerada. La columna 0 (la primera) es el Nº (un entero). La columna 1 (la siguiente) es una marca de estado de la cuota escrita a mano.\n" +
-  "Las marcas posibles son exactamente: S (pagada), N (pendiente) o vacío (si la celda está en blanco).\n" +
+  "Las marcas posibles son exactamente: S (pagada), N (pendiente) o vacío (si la celda está en blanco significa que NO ha pagado: trátala como N). Una P o una X escrita a mano también significa pagada: trátala como S.\n" +
   "Además, la fila de un hermano puede estar tachada (un trazo que cruza el nombre o la línea, un círculo alrededor del Nº, o un subrayado fuerte). Eso significa que el hermano se da de baja y hay que quitarlo de la lista: en ese caso pon \"quitar\":true para esa fila, con \"marca\":\"\" aunque tenga algo escrito.\n" +
   "Devuelve ÚNICAMENTE un JSON válido, sin texto alrededor ni marcas de código, con esta forma exacta:\n" +
   '[{"n":1,"marca":"S"},{"n":3,"marca":"","quitar":true}]' +
   "\nSolo puede haber una entrada por Nº. Si una celda está vacía, usa \"\". Si no estás seguro de una marca, usa \"\" (vacío) para esa fila. El campo \"quitar\" es opcional: solo ponlo a true cuando la fila esté claramente tachada.\n";
 
 /** Convierte el JSON (con o sin marcas ```json``` alrededor) en filas válidas. */
-function parsear(texto: string, marcasValidas: readonly string[]): FilaTranscrita[] {
+function parsear(
+  texto: string,
+  marcasValidas: readonly string[],
+  alias: Record<string, string> = {},
+): FilaTranscrita[] {
   let t = texto.trim();
   // Gemini a veces envuelve la salida en una marca de bloque JSON o Markdown.
   const empieza = t.indexOf("[");
@@ -167,10 +175,16 @@ function parsear(texto: string, marcasValidas: readonly string[]): FilaTranscrit
     const n = Number(o.n);
     if (!Number.isInteger(n) || n <= 0) continue;
     const m = String(o.marca ?? "").trim().toUpperCase();
-    // Lo que no sea marca válida se trata como vacío (a revisar en la UI).
-    const marca = marcasValidas.includes(m as Marca | Cuota) ? (m as Marca | Cuota) as Marca : "";
+    // Lo que no sea marca válida se trata como vacío (a revisar en la UI),
+    // salvo lo que el alias mapee: en asistencias X = falta (F); en cuotas
+    // P o X = pagada (S).
+    let marca = marcasValidas.includes(m) ? (m as Marca | Cuota) : "";
+    if (!marca) {
+      const canon = alias[m];
+      if (canon && marcasValidas.includes(canon)) marca = canon as Marca | Cuota;
+    }
     const quitar = o.quitar === true ? true : undefined;
-    filas.push({ n, marca, ...(quitar ? { quitar } : {}) });
+    filas.push({ n, marca: marca as Marca, ...(quitar ? { quitar } : {}) });
   }
   // Quita duplicados de Nº quedándonos con la última aparición.
   const porN = new Map<number, FilaTranscrita>();

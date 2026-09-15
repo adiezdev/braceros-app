@@ -22,8 +22,6 @@
   margin-bottom:12px; }
 .volcado__controles label { display:flex; flex-direction:column; gap:3px;
   font-size:var(--fs-xs); color:var(--suave); }
-.volcado__controles select { font:inherit; padding:5px 8px; border:1px solid
-  var(--filete); border-radius:var(--radius-sm); background:var(--panel); }
 .volcado__error { color:var(--rojo); font-weight:600; margin:0 0 10px; }
 .volcado__errores { margin:0 0 10px; padding-left:18px; color:var(--rojo);
   font-size:var(--fs-sm); }

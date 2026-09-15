@@ -19,7 +19,25 @@
   animation: girar .7s linear infinite; }
 @keyframes girar { to { transform:rotate(360deg); } }
 
-/* campos y selects */
+/* --- input base unificado --- */
+.input { font:inherit; width:100%; min-width:80px; border:1px solid var(--filete);
+  background:var(--panel); padding:7px 9px; color:var(--tinta); border-radius:var(--radius-sm);
+  transition:border-color .15s ease, box-shadow .15s ease; }
+.input:hover { border-color:var(--suave); }
+.input:focus { border-color:var(--burdeos); box-shadow:0 0 0 2px var(--hover-claro); outline:none; }
+.input:disabled { opacity:.5; cursor:not-allowed; }
+.input--corto { min-width:60px; }
+
+/* --- select base unificado --- */
+.select { font:inherit; font-size:var(--fs-xs); border:1px solid var(--filete);
+  background:var(--panel); padding:7px 9px; color:var(--suave); border-radius:var(--radius-sm);
+  cursor:pointer; transition:border-color .15s ease; }
+.select:hover { border-color:var(--suave); }
+.select:focus-visible { outline:2px solid var(--burdeos); outline-offset:1px; }
+.select--titulares { color:var(--verde); }
+.select--honorarios { color:var(--laton); }
+
+/* compat: mantener .txt y .sel para el Input/Select component wrappers */
 .txt { font:inherit; width:100%; min-width:80px; border:1px solid transparent;
   background:none; padding:3px 5px; color:inherit; }
 .txt:hover { border-color:var(--filete); }
@@ -27,7 +45,9 @@
 .txt:disabled { opacity:.5; cursor:not-allowed; }
 .txt--corto { min-width:60px; }
 .sel { font:inherit; font-size:var(--fs-xs); border:1px solid var(--filete);
-  background:var(--panel); padding:3px 4px; color:var(--suave); }
+  background:var(--panel); padding:3px 4px; color:var(--suave); border-radius:var(--radius-sm);
+  cursor:pointer; transition:border-color .15s ease; }
+.sel:hover { border-color:var(--suave); }
 .sel:focus-visible { outline:2px solid var(--burdeos); outline-offset:1px; }
 .sel--titulares { color:var(--verde); }
 .sel--honorarios { color:var(--laton); }
@@ -116,7 +136,9 @@
   --hover-claro:#F7EDEF; --borde-suave:#EFEAE2; --hover-fila:#FAF7F1;
   --vacia-gris:#C4BCB2;
   position:fixed; inset:0; z-index:60; display:flex; align-items:center;
-  justify-content:center; }
+  justify-content:center;
+  font-family:'Poppins',system-ui,Arial,sans-serif; font-size:var(--fs-base);
+  color:var(--tinta); }
 .dialogo__fondo { position:absolute; inset:0; background:rgba(42,38,34,.5);
   backdrop-filter:blur(1px); }
 .dialogo { position:relative; width:min(420px, calc(100vw - 32px));
@@ -125,19 +147,7 @@
 .dialogo__mensaje { margin:0 0 20px; font-size:var(--fs-md); line-height:1.5;
   color:var(--tinta); font-family:'Poppins',Arial,sans-serif; }
 .dialogo__acciones { display:flex; justify-content:flex-end; gap:8px; }
-.dialogo .txt { width:100%; margin-bottom:20px; border:1px solid var(--filete);
-  background:var(--panel); padding:7px 9px; color:var(--tinta); border-radius:var(--radius-sm);
-  font-family:'Poppins',Arial,sans-serif; font-size:var(--fs-md); }
-.dialogo .txt:hover { border-color:var(--suave); }
-.dialogo .txt:focus { border-color:var(--burdeos); outline:none; }
-.dialogo .btn { display:inline-flex; align-items:center; gap:6px; font:inherit;
-  font-weight:500; padding:7px 12px; border:1px solid var(--burdeos);
-  background:var(--panel); color:var(--burdeos); cursor:pointer; border-radius:var(--radius-sm);
-  font-family:'Poppins',Arial,sans-serif; font-size:var(--fs-sm); }
-.dialogo .btn:hover { background:var(--hover-claro); }
-.dialogo .btn--fuerte { background:var(--burdeos); color:#fff; }
-.dialogo .btn--fuerte:hover { background:var(--burdeos-oscuro); }
-.dialogo .btn:focus-visible { outline:2px solid var(--burdeos); outline-offset:1px; }
+.dialogo .input { width:100%; margin-bottom:20px; }
 
 /* menú desplegable (Radix DropdownMenu) */
 .menu { --papel:#E8E4DC; --panel:#FDFCFA; --burdeos:#7A1F2B;
@@ -146,7 +156,9 @@
   --hover-claro:#F7EDEF; --hover-fila:#FAF7F1;
   z-index:70; min-width:200px; padding:6px; background:var(--panel);
   border:1px solid var(--filete); border-radius:var(--radius-md);
-  box-shadow:var(--shadow-lg); }
+  box-shadow:var(--shadow-lg);
+  font-family:'Poppins',system-ui,Arial,sans-serif; font-size:var(--fs-sm);
+  color:var(--tinta); }
 .menu__item { display:flex; align-items:center; gap:8px; padding:8px 10px;
   font-family:'Poppins',Arial,sans-serif; font-size:var(--fs-sm); color:var(--tinta);
   border-radius:var(--radius-sm); cursor:pointer; outline:none; }

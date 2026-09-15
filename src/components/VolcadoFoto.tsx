@@ -3,12 +3,13 @@ import { motion } from "motion/react";
 import { useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-import { ETIQUETA_BLOQUE, PROCESIONES } from "../constants";
-import { useVolcadoFoto, nombreProcesion, type SeccionFoto } from "../hooks/useVolcadoFoto";
+import { PROCESIONES } from "../constants";
+import { useVolcadoFoto, nombreProcesion } from "../hooks/useVolcadoFoto";
 import { claseCelda } from "../lib/marcas";
 import type { CfgImpresion, Estado } from "../types";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
+import { Select } from "./ui/Select";
 
 interface Props {
   est: Estado;
@@ -20,7 +21,6 @@ interface Props {
 export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
   const {
     esCuotas,
-    seccion,
     procesion,
     anio,
     anios,
@@ -30,7 +30,6 @@ export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
     conMarca,
     conBaja,
     seleccionarModo,
-    seleccionarSeccion,
     seleccionarProcesion,
     seleccionarAnio,
     elegirFotos,
@@ -82,25 +81,16 @@ export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
 
         <p className="volcado__ayuda">
           {esCuotas
-            ? "Elige la sección y el año, selecciona varias fotos a la vez (una por página) y la IA lee el estado S/N de cada cuota. Revisa las dudosas antes de guardar."
-            : "Elige la sección, la procesión y el año, selecciona varias fotos a la vez (una por página) y la IA las lee todas. Revisa las que marque como dudosas antes de guardar."}
+            ? "Elige el año, selecciona varias fotos a la vez (una por página) y la IA lee el estado S/N de cada cuota. Revisa las dudosas antes de guardar."
+            : "Elige la procesión y el año, selecciona varias fotos a la vez (una por página) y la IA las lee todas. Revisa las que marque como dudosas antes de guardar."}
         </p>
 
         <div className="volcado__controles">
-          <label>
-            Sección
-            <select value={seccion} onChange={(e) => seleccionarSeccion(e.target.value as SeccionFoto)}>
-              {(["HONORARIOS", "TITULARES", "SUPLENTES"] as SeccionFoto[]).map((s) => (
-                <option key={s} value={s}>
-                  {ETIQUETA_BLOQUE[s]}
-                </option>
-              ))}
-            </select>
-          </label>
           {!esCuotas && (
             <label>
               Procesión
-              <select
+              <Select
+                className="select"
                 value={procesion}
                 onChange={(e) => seleccionarProcesion(e.target.value as "exc" | "sm")}
               >
@@ -109,18 +99,22 @@ export function VolcadoFoto({ est, cfg, setEst, onCerrar }: Props) {
                     {p.corto}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           )}
           <label>
             Año
-            <select value={anio} onChange={(e) => seleccionarAnio(Number(e.target.value))}>
+            <Select
+              className="select"
+              value={anio}
+              onChange={(e) => seleccionarAnio(Number(e.target.value))}
+            >
               {anios.map((a) => (
                 <option key={a} value={a}>
                   {a}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <input
             ref={inputRef}

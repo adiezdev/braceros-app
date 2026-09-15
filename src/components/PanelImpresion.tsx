@@ -4,7 +4,8 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { Button } from "./ui/Button";
 import { Campo } from "./ui/Campo";
-import { Checkbox } from "./ui/Input";
+import { Checkbox, Input } from "./ui/Input";
+import { Select } from "./ui/Select";
 import type { CfgImpresion, Estado, TipoListado } from "../types";
 import { VistaImpresion } from "./VistaImpresion";
 
@@ -56,7 +57,8 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
       <div className="panel-impr">
         <div className="panel-impr__cfg">
           <Campo etiqueta="Qué listado">
-            <select
+            <Select
+              className="select"
               value={cfg.tipo}
               onChange={(e) =>
                 setCfg((c) => ({ ...c, tipo: e.target.value as TipoListado }))
@@ -64,11 +66,12 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
             >
               <option value="asistencias">Asistencias</option>
               <option value="cuotas">Cuotas</option>
-            </select>
+            </Select>
           </Campo>
 
           <Campo etiqueta="Año que se muestra">
-            <input
+            <Input
+              className="input"
               type="number"
               value={cfg.anioAnterior}
               onChange={(e) =>
@@ -81,7 +84,8 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
             <span className="anios-blancos">
               {cfg.aniosNuevos.map((a, i) => (
                 <span key={i} className="anios-blancos__fila">
-                  <input
+                  <Input
+                    className="input"
                     type="number"
                     value={a}
                     onChange={(e) => cambiarAnioNuevo(i, Number(e.target.value))}
@@ -103,7 +107,8 @@ export function PanelImpresion({ est, cfg, setCfg }: Props) {
           </Campo>
 
           <Campo etiqueta="Filas vacías al final">
-            <input
+            <Input
+              className="input"
               type="number"
               min={0}
               max={60}

@@ -82,9 +82,12 @@
 .barra { display:flex; flex-wrap:wrap; gap:10px; align-items:center;
   padding:10px 0; }
 .buscador { display:inline-flex; align-items:center; gap:6px; background:var(--panel);
-  border:1px solid var(--filete); padding:5px 9px; color:var(--suave); }
+  border:1px solid var(--filete); padding:7px 9px; color:var(--suave);
+  border-radius:var(--radius-sm); transition:border-color .15s ease, box-shadow .15s ease; }
+.buscador:hover { border-color:var(--suave); }
+.buscador:focus-within { border-color:var(--burdeos); box-shadow:0 0 0 2px var(--hover-claro); }
 .buscador input { font:inherit; border:0; background:none; outline:none;
-  color:var(--tinta); width:190px; }
+  color:var(--tinta); width:150px; }
 .anios { display:flex; gap:5px; flex-wrap:wrap; }
 .anio-x { display:inline-flex; align-items:center; gap:4px; font:inherit;
   font-size:var(--fs-xs); padding:3px 7px; border:1px solid var(--filete);

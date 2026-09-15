@@ -5,14 +5,12 @@
 .panel-impr__cfg { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
 .panel-impr__cfg label { display:flex; flex-direction:column; gap:3px;
   font-size:var(--fs-xs); color:var(--suave); }
-.panel-impr__cfg input, .panel-impr__cfg select { font:inherit;
-  border:1px solid var(--filete); padding:5px 7px; background:var(--panel);
-  color:var(--tinta); width:150px; }
+.panel-impr__cfg .input, .panel-impr__cfg .select { width:150px; }
 .panel-impr__nota { color:var(--suave); font-size:var(--fs-sm); max-width:70ch;
   margin:12px 0 0; }
 .anios-blancos { display:flex; flex-direction:column; gap:4px; min-width:150px; }
 .anios-blancos__fila { display:flex; gap:4px; }
-.anios-blancos__fila input { width:150px; }
+.anios-blancos__fila .input { width:150px; }
 .anios-blancos__x { border:1px solid var(--filete); background:var(--panel);
   color:var(--suave); padding:0 6px; cursor:pointer; }
 .anios-blancos__x:hover { color:var(--tinta); }

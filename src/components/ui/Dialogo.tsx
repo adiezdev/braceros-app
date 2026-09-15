@@ -48,7 +48,7 @@ function Confirmar({ dialogo }: { dialogo: Dialogo & { tipo: "confirmar" | "avis
                       Cancelar
                     </Button>
                   )}
-                  <Button fuerte fino onClick={() => dialogo.resolver(true)} autoFocus>
+                  <Button fuerte onClick={() => dialogo.resolver(true)} autoFocus>
                     {esConfirmar ? "Sí" : "Aceptar"}
                   </Button>
                 </div>
@@ -95,7 +95,7 @@ function Preguntar({ dialogo }: { dialogo: Dialogo & { tipo: "preguntar" } }) {
                 </Dialog.Title>
                 <input
                   ref={ref}
-                  className="txt"
+                  className="input"
                   value={valor}
                   onChange={(e) => setValor(e.target.value)}
                   onKeyDown={(e) => {
@@ -107,7 +107,7 @@ function Preguntar({ dialogo }: { dialogo: Dialogo & { tipo: "preguntar" } }) {
                   <Button fino onClick={() => dialogo.resolver(null)}>
                     Cancelar
                   </Button>
-                  <Button fuerte fino onClick={enviar}>
+                  <Button fuerte onClick={enviar}>
                     Añadir
                   </Button>
                 </div>
